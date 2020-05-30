@@ -12,6 +12,8 @@ class MyClient(discord.Client):
     async def on_message(self, message):
         if(message.startswith("$"));
             if(is_valid_command(message)):
+                message_array = message.content.split(" ")
+                message_command = message_array[0]
                 
             else:
                 await message.channel.send("not valid command ")

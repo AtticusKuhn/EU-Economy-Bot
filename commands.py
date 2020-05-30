@@ -1,3 +1,6 @@
+##this file handles commands
+
+
 commands_array = [
     ("$send",3),
     ("$request",2)
