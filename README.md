@@ -11,11 +11,15 @@ This is an economy bot for the EU discord server
 - $print (wallet name) (amount) - creates an amount of money in that wallet if you have the role "printer"
 - $burn (wallet name) (amount) - deletes that much money from a wallet
 - $balance (wallet name) - returns the amount of money in the wallet
+- $config (config option) (config setting) - if you have the admin role, configure the bot. 
+    * Earn method - can be message send, time online, length sent, or none.
+    * Earn amount - how much money will be earned when someone earns money
+
 
 
 # Wallets explained
 
-Wallets are were money is stored. Each person has a personal wallet
+Wallets are where money is stored. Each person has a personal wallet
 and each roles has a communal wallet. Anyone with the role can access the role wallet.
 People with the role "taxation" can access any wallet below them in the role heirarchy.
 

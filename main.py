@@ -11,8 +11,8 @@ class MyClient(discord.Client):
         print(self.user.id)
         print('------')
     async def on_message(self, message):
-        if(message.startswith("$")):
-            if(is_valid_command(message)):
+        if(message.content.startswith("$")):
+            if(commands.is_valid_command(message)):
                 message_array = message.content.split(" ")
                 message_command = message_array[0]
                 if(message_command == "$send"):
