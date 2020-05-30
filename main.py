@@ -1,7 +1,8 @@
 import discord
 import json
-import commands.py
-import methods.py
+import commands
+import methods
+import os 
 
 class MyClient(discord.Client):
     async def on_ready(self):
@@ -10,12 +11,12 @@ class MyClient(discord.Client):
         print(self.user.id)
         print('------')
     async def on_message(self, message):
-        if(message.startswith("$"));
+        if(message.startswith("$")):
             if(is_valid_command(message)):
                 message_array = message.content.split(" ")
                 message_command = message_array[0]
                 if(message_command == "$send"):
-                    if(message.guild, send(message_array[1:])):
+                    if(send(message.guild,message_array[1:])):
                         await message.channel.send("the transfer of money was successful")
                     else:
                         await message.channel.send("an error occured in transferring money")
