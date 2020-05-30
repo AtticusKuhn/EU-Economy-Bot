@@ -1,4 +1,7 @@
 import discord
+import json
+
+
 
 class MyClient(discord.Client):
     async def on_ready(self):
