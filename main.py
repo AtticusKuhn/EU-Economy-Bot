@@ -19,7 +19,11 @@ class MyClient(discord.Client):
                         await message.channel.send("the transfer of money was successful")
                     else:
                         await message.channel.send("an error occured in transferring money")
-                
+                if(message_commande == "$balance"):
+                    if(get_balance(message.guild, message_array[1:])):
+                        await message.channel.send(f'the balane is {get_balance(message.guild, message_array[1:])}')
+                    else:
+                        await message.channel.send("there was an error")
             else:
                 await message.channel.send("not valid command ")
 

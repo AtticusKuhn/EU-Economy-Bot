@@ -20,6 +20,8 @@ and each roles has a communal wallet. Anyone with the role can access the role w
 People with the role "taxation" can access any wallet below them in the role heirarchy.
 
 
+
+
 # Errors
 
 - args error - you did not provide the correct amount of arguments
