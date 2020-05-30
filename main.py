@@ -1,6 +1,6 @@
 import discord
 import json
-
+import commands.py
 
 
 class MyClient(discord.Client):
@@ -10,7 +10,11 @@ class MyClient(discord.Client):
         print(self.user.id)
         print('------')
     async def on_message(self, message):
-        pass
+        if(message.startswith("$"));
+            if(is_valid_command(message)):
+                
+            else:
+                await message.channel.send("not valid command ")
 
 
 client = MyClient()
