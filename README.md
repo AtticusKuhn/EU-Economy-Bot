@@ -10,6 +10,8 @@ This is an economy bot for the EU discord server
 - $tax (ping person) (amount) (wallet name) - if you have the role "taxation" take that amount of money from the person and put it in the wallet
 - $print (wallet name) (amount) - creates an amount of money in that wallet if you have the role "printer"
 - $burn (wallet name) (amount) - deletes that much money from a wallet
+- $balance (wallet name) - returns the amount of money in the wallet
+
 
 
 # Errors

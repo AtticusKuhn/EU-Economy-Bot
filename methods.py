@@ -2,5 +2,8 @@
 
 
 
-def send(sender, recipiant, amount, wallet):
+def send(guild, sender, recipiant, amount, wallet):
+    pass
+
+def get_balance(guild,wallet):
     pass
