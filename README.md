@@ -31,3 +31,8 @@ People with the role "taxation" can access any wallet below them in the role hei
 - args error - you did not provide the correct amount of arguments
 - value error - you do not have enough money
 - name error - either the name of a wallet or the name of a person does not exist
+
+
+# Invite link
+
+You can invite this bot to any server with the link https://discord.com/oauth2/authorize?scope=bot&client_id=716434826151854111
