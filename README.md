@@ -14,7 +14,7 @@ This is an economy bot for the EU discord server
 - $config (config option) (config setting) - if you have the admin role, configure the bot. 
     * Earn method - can be message send, time online, length sent, or none.
     * Earn amount - how much money will be earned when someone earns money
-
+- $stats - See stats on the economy of the server, such as inflation, GDP, and M0.
 
 
 # Wallets explained
