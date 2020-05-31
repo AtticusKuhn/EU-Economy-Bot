@@ -2,6 +2,7 @@
 
 
 commands_array = [
+    ("$help",0),
     ("$send",3),
     ("$request",2)
 ]
