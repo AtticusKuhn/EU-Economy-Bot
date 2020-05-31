@@ -2,6 +2,11 @@
 This is an economy bot for the EU discord server
 
 
+
+# Inspiration
+
+I wanted a Purely Economic bot for my EU simulator server. I tried to use premade bots, such as tip.cc or unbelieveabot, but they did not suit my criterion. For each I found that many bots rely too much on gambling and games, which I did not want in the EU server. Thus I decided to build a new bot that purely focuses on economics without any games.
+
 # Commands that will be added
 
 - $help - shows all commands
