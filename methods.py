@@ -49,7 +49,17 @@ def get_wallet(server_id, ping_wallet):
         found_server = server
         break
     if(server_exists):
-        
-
+        first digit = re.search(r"\d", ping_wallet)
+        if digit is not None:
+            id_of_wallet = ping_wallet[first_digit.start():-1]
+            for person in found_server.members:
+                if person.id == id_of_wallet:
+                    return (True, person, "person")
+            for role in found_sever.roles:
+                if role.id == id_of_wallet:
+                    return (True, role, "role")
+            return (False, "not found")
+        else:
+            return (False, "invalid format")
     else:
         return (False, "server does not exist")
