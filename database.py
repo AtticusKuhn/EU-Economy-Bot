@@ -20,8 +20,8 @@ client = MongoClient('ADIPAT FILL THIS IN')
 db = client.database
 
 
-def send(guild, from_wallet, to_wallet, amount):
-    guild_collection =db[guild]
+def send(guild_id, from_wallet, to_wallet, amount):
+    guild_collection =db[guild_id]
     from_wallet_id = methods.get_wallet(guild, from_wallet)
     to_wallet_id =methods.get_wallet(guild, to_wallet)
     if(from_wallet_id[0] and to_wallet_id[0])
@@ -30,7 +30,15 @@ def send(guild, from_wallet, to_wallet, amount):
         if(sender_account is not None):
             if(reciever_account is not None):
                 if(sender_account["balance"] > amount):
-
+                    guild_collection.update_one(
+                        {"id":  sender_account["id"] },
+                        { "$inc":{"balance":-amount} }
+                    )
+                     guild_collection.update_one(
+                        {"id":  reciever_account["id"] },
+                        { "$inc":{"balance":amount} }
+                    )
+                    return (True, "transfer successful")
                 else:
                     return (False, "insufficent funds")
             else:
