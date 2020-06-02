@@ -4,7 +4,8 @@
 commands_array = [
     ("$help",0),
     ("$send",3),
-    ("$request",2)
+   #######  ("$request",2),
+   ("$create",1)
 ]
 def is_valid_command(user_message):
     user_array = user_message.content.split(" ")

@@ -28,11 +28,15 @@ class MyClient(discord.Client):
                     '''
                     )
                 if(message_command == "$send"):
-                    if  send(message.guild.id, message_array[0], message_array[1], message_array[2])[0]:
+                    if  database.send(message.guild.id, message_array[0], message_array[1], message_array[2])[0]:
                         await message.channel.send("success")
                     else:
                         await message.channel.send("an error occured")
-
+                if(message_command == "$create"):
+                    if( database.create(message.guild.id, message_array[0])[0]):
+                        await message.channel.send("created")
+                    else:
+                        await message.channel.send("error")
                 if(message_command == "$balance"):
                     if(get_balance(message.guild, message_array[1:])):
                         await message.channel.send(f'the balane is {get_balance(message.guild, message_array[1:])}')
