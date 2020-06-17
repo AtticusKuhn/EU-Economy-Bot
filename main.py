@@ -1,8 +1,12 @@
+#modules
 import discord
 import json
-import commands
+import os
+#files
+import database 
 import methods
-import os 
+import commands
+
 
 class MyClient(discord.Client):
     async def on_ready(self):
