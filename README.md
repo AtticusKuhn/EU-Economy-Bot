@@ -16,10 +16,11 @@ I wanted a Purely Economic bot for my EU simulator server. I tried to use premad
 - $print (wallet name) (amount) - creates an amount of money in that wallet if you have the role "printer"
 - $burn (wallet name) (amount) - deletes that much money from a wallet
 - $balance (wallet name) - returns the amount of money in the wallet
-- $config (config option) (config setting) - if you have the admin role, configure the bot. 
+- DEPRECATED $config (config option) (config setting) - if you have the admin role, configure the bot. 
     * Earn method - can be message send, time online, length sent, or none.
     * Earn amount - how much money will be earned when someone earns money
 - $stats - See stats on the economy of the server, such as inflation, GDP, and M0.
+- $smart-contract (trigger) (code) - set up a smart contract 
 
 
 # Wallets explained
@@ -28,7 +29,17 @@ Wallets are where money is stored. Each person has a personal wallet
 and each roles has a communal wallet. Anyone with the role can access the role wallet.
 People with the role "taxation" can access any wallet below them in the role heirarchy.
 
+# Smart Contracts
 
+What sets this bot apart from all other economy bots is smart contracts, allowing for
+more complex transactions. Let's look at an example:
+
+$smart-contract message 
+```
+if(message.content == "I love eu-economy-bot"):
+    send(message.author.mention, 10)
+    annul()
+```
 
 
 # Errors
