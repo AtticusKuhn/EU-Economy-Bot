@@ -16,7 +16,7 @@ from pymongo import MongoClient
 import pprint
 import methods
 
-client = MongoClient('ADIPAT FILL THIS IN')
+client = MongoClient(os.environ.get("MONGO_URL"))
 db = client.database
 
 

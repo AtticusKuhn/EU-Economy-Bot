@@ -24,7 +24,6 @@ class MyClient(discord.Client):
 - $print (wallet name) (amount) - creates an amount of money in that wallet if you have the role "printer"
 - $burn (wallet name) (amount) - deletes that much money from a wallet
 - $balance (wallet name) - returns the amount of money in the wallet
-- $config (config option) (config setting) - if you have the admin role, configure the bot. 
                     '''
                     )
                 if(message_command == "$send"):

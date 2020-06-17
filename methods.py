@@ -1,8 +1,10 @@
 ##this is for the functions that are used many times
+
+
 import re
 
 
-
+##finds if a role exists in a server
 def is_role(server_id, role_id):
     server_exists = False
     role_exists = False
@@ -21,7 +23,7 @@ def is_role(server_id, role_id):
     
 
 
-
+## finds whether a use exists in a server
 def is_user(server_id,user_id):
     server_exists = False
     person_exists = False
