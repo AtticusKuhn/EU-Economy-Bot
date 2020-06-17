@@ -24,13 +24,18 @@ client = MongoClient(os.environ.get("MONGO_URL"))
 db = client.database
 
 
-def send(guild_id, from_wallet, to_wallet, amount):
-    guild_collection =db[guild_id]
-    from_wallet_id = methods.get_wallet(guild, from_wallet)
-    to_wallet_id =methods.get_wallet(guild, to_wallet)
+def send(client, guild_id, from_wallet, to_wallet, amount):
+    try:
+        amount = int(amount)
+    except:
+        return (False,"invalid amount" )
+    guild_collection =db[str(guild_id)]
+    from_wallet_id = methods.get_wallet(client, guild_id, from_wallet)
+    to_wallet_id =methods.get_wallet(client, guild_id, to_wallet)
+    print(to_wallet_id,from_wallet_id)
     if(from_wallet_id[0] and to_wallet_id[0]):
-        sender_account = guild_collection.find_one(posts.find_one({"id": from_wallet_id[1]}))
-        reciever_account = guild_collection.find_one(posts.find_one({"id": to_wallet_id[1]}))
+        sender_account = guild_collection.find_one({"id": from_wallet_id[1].id})
+        reciever_account = guild_collection.find_one({"id": to_wallet_id[1].id})
         if(sender_account is not None):
             if(reciever_account is not None):
                 if(sender_account["balance"] > amount):

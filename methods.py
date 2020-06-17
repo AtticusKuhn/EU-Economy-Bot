@@ -46,7 +46,7 @@ def get_wallet(client, server_id, ping_wallet):
     server_exists = False
     wallet_exists = False
     found_server =""
-    print(ping_wallet)
+    print(ping_wallet,"ping_waller")
     for server in client.guilds:
         if(server.id == server_id):
             server_exists = True
@@ -61,7 +61,7 @@ def get_wallet(client, server_id, ping_wallet):
                 if str(person.id) == str(id_of_wallet):
                     return (True, person, "person")
             for role in found_server.roles:
-                if role.id == id_of_wallet:
+                if str(role.id) == str(id_of_wallet):
                     return (True, role, "role")
             return (False, "not found")
         else:

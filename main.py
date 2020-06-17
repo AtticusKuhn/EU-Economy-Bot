@@ -30,10 +30,11 @@ class MyClient(discord.Client):
                     '''
                     )
                 if(message_command == "$send"):
-                    if  database.send(message.guild.id, message_array[0], message_array[1], message_array[2])[0]:
+                    send_result = database.send(client, message.guild.id, message_array[1], message_array[2], message_array[3])
+                    if  send_result[0]:
                         await message.channel.send("success")
                     else:
-                        await message.channel.send("an error occured")
+                        await message.channel.send(f'an error occured {send_result[1]}')
                 if(message_command == "$create"):
                     result = database.create(message.guild.id, message_array[1], client)
                     if(result[0]):
