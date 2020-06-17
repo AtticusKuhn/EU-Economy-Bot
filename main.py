@@ -7,7 +7,6 @@ import database
 import methods
 import commands
 
-
 class MyClient(discord.Client):
     async def on_ready(self):
         print('Logged in as')
@@ -42,8 +41,8 @@ class MyClient(discord.Client):
                     else:
                         await message.channel.send(f'error {result[1]}')
                 if(message_command == "$balance"):
-                    if(get_balance(message.guild, message_array[1:])):
-                        await message.channel.send(f'the balane is {get_balance(message.guild, message_array[1:])}')
+                    if(database.get_balance(message.guild.id, message_array[1], client)):
+                        await message.channel.send(f'the balane is {database.get_balance(message.guild.id, message_array[1], client)[1]}')
                     else:
                         await message.channel.send("there was an error")
             else:

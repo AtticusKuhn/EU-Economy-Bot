@@ -16,6 +16,8 @@ import os
 from pymongo import MongoClient
 import pprint
 import methods
+os.system("pip install dnspython")
+
 #import dnspython 
 
 client = MongoClient(os.environ.get("MONGO_URL"))
@@ -79,8 +81,22 @@ def create(guild, wallet_ping, client):
 
 
 
-def get_balance(guild,wallet):
-    pass
+def get_balance(guild,wallet,client):
+    guild_collection =db[str(guild)]
+    get_wallet_result = methods.get_wallet(client, guild, wallet)
+    print(get_wallet_result)
+    if(get_wallet_result[0]):
+        found_wallet = guild_collection.find_one({
+            "id"     :get_wallet_result[1].id,
+        })
+        if(found_wallet is None):
+            found_wallet = "cannot find wallet"
+        return (True, found_wallet)
+    else:
+        return (False, "doesn't exist")
+
+
+
 def alter_money(guild, amount,wallet):
     pass
 def set_money(guild, amount, wallet):
