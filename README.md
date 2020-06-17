@@ -41,6 +41,8 @@ if(message.content == "I love eu-economy-bot"):
     annul()
 ```
 
+Each person can only have 3 smart contracts, and if a smart contract encounters an error, then it is automatically annuled.
+
 
 # Errors
 
