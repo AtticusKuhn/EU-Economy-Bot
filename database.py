@@ -24,7 +24,9 @@ client = MongoClient(os.environ.get("MONGO_URL"))
 db = client.database
 
 
-def send(client, guild_id, from_wallet, to_wallet, amount):
+def send(client, guild_id, from_wallet, to_wallet, amount, person):
+    if not methods.can_access_wallet(client, guild_id, person, from_wallet):
+        return (False, "cannot access wallet")
     try:
         amount = int(amount)
     except:

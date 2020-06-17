@@ -72,6 +72,13 @@ def get_wallet(client, server_id, ping_wallet):
 
 def can_access_wallet(client, server_id, person, wallet):
     found_wallet = get_wallet(client, server_id, wallet)
-    if(!found_wallet):
-        return (False, "can't be found")
+    if(not found_wallet[0]):
+        return False
+    if(str(found_wallet[1].id) == str(person.id)):
+        return True
+    roles = map(lambda role: role.name, person.roles)
+    if(found_wallet[1].name in roles):
+        return True
+    return False
+
     

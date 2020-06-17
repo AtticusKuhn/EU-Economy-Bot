@@ -30,7 +30,7 @@ class MyClient(discord.Client):
                     '''
                     )
                 if(message_command == "$send"):
-                    send_result = database.send(client, message.guild.id, message_array[1], message_array[2], message_array[3])
+                    send_result = database.send(client, message.guild.id, message_array[1], message_array[2], message_array[3], message.author)
                     if  send_result[0]:
                         await message.channel.send("success")
                     else:
