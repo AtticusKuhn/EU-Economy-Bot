@@ -46,6 +46,17 @@ class MyClient(discord.Client):
                         await message.channel.send(f'the balane is {database.get_balance(message.guild.id, message_array[1], client)[1]}')
                     else:
                         await message.channel.send("there was an error")
+                if(message_command == "$print"):
+                    roles = map(lambda role: role.name, message.author.roles)
+                    if("printer" not in roles):
+                        await message.channel.send("you do not have the role printer")
+                        return
+                    result = database.print_money(client, message.guild.id, message_array[1], message_array[2])
+                    if(result[0]):
+                        await message.channel.send("the printing was successful")
+                    else:
+                        await message.channel.send(f' there was an error {result[1]}')
+
             else:
                 await message.channel.send("not valid command ")
 

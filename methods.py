@@ -68,3 +68,10 @@ def get_wallet(client, server_id, ping_wallet):
             return (False, "invalid format")
     else:
         return (False, "server does not exist")
+
+
+def can_access_wallet(client, server_id, person, wallet):
+    found_wallet = get_wallet(client, server_id, wallet)
+    if(!found_wallet):
+        return (False, "can't be found")
+    

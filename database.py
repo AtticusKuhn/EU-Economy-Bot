@@ -101,6 +101,27 @@ def get_balance(guild,wallet,client):
         return (False, "doesn't exist")
 
 
+def print_money(client, guild_id, wallet, amount):
+    try:
+        amount = int(amount)
+    except:
+        return (False,"invalid amount" )
+    guild_collection =db[str(guild_id)]
+    wallet_id = methods.get_wallet(client, guild_id, wallet)
+    print(wallet_id)
+    if(wallet_id[0]):
+        account = guild_collection.find_one({"id": wallet_id[1].id})
+        if(account is not None):
+                guild_collection.update_one(
+                    {"id":  account["id"] },
+                    { "$inc":{"balance":amount} }
+                )
+                return (True, "transfer successful")
+        else:
+           return (False, "sender account not found") 
+    else:
+        return (False, "cannot find wallet")
+
 
 def alter_money(guild, amount,wallet):
     pass
