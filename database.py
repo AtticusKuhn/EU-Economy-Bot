@@ -16,13 +16,14 @@ import os
 from pymongo import MongoClient
 import pprint
 import methods
+#import dnspython 
 
 client = MongoClient(os.environ.get("MONGO_URL"))
 db = client.database
 
 
-def send(guild, from_wallet, to_wallet, amount):
-    guild_collection =db[guild.id]
+def send(guild_id, from_wallet, to_wallet, amount):
+    guild_collection =db[guild_id]
     from_wallet_id = methods.get_wallet(guild, from_wallet)
     to_wallet_id =methods.get_wallet(guild, to_wallet)
     if(from_wallet_id[0] and to_wallet_id[0]):
@@ -52,14 +53,15 @@ def send(guild, from_wallet, to_wallet, amount):
 
     pass
 
-def create(guild, wallet_ping):
-    guild_collection =db[guild.id]
-    get_wallet_result = methods.get_wallet(guild,wallet_ping)
+def create(guild, wallet_ping, client):
+    guild_collection =db[str(guild)]
+    get_wallet_result = methods.get_wallet(client, guild, wallet_ping)
+    print(get_wallet_result)
     if(get_wallet_result[0]):
         if(get_wallet_result[2] == "person"):
             guild_collection.insert_one({
-                "name"   :get_wallet_result.username,
-                "id"     :get_wallet_result.id,
+                "name"   :get_wallet_result[1].name,
+                "id"     :get_wallet_result[1].id,
                 "type"   :"personal",
                 "balance": 0
              })
@@ -70,6 +72,7 @@ def create(guild, wallet_ping):
                 "type"   :"role",
                 "balance": 0
              })
+        return (True, "created")
     else:
         return (False, "doesn't exist")
 

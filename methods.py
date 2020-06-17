@@ -42,9 +42,11 @@ def is_user(server_id,user_id):
 
 
 
-def get_wallet(server_id, ping_wallet):
+def get_wallet(client, server_id, ping_wallet):
     server_exists = False
     wallet_exists = False
+    found_server =""
+    print(ping_wallet)
     for server in client.guilds:
         if(server.id == server_id):
             server_exists = True
@@ -53,11 +55,12 @@ def get_wallet(server_id, ping_wallet):
     if(server_exists):
         digit = re.search(r"\d", ping_wallet)
         if digit is not None:
-            id_of_wallet = ping_wallet[first_digit.start():-1]
+            id_of_wallet = ping_wallet[digit.start():-1]
+            print(id_of_wallet)
             for person in found_server.members:
-                if person.id == id_of_wallet:
+                if str(person.id) == str(id_of_wallet):
                     return (True, person, "person")
-            for role in found_sever.roles:
+            for role in found_server.roles:
                 if role.id == id_of_wallet:
                     return (True, role, "role")
             return (False, "not found")
