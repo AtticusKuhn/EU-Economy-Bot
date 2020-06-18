@@ -128,9 +128,10 @@ def print_money(client, guild_id, wallet, amount):
         return (False, "cannot find wallet")
 
 def write_contract(guild,person,contract, trigger ):
-    if(trigger not in config.triggers):
-        return (False, 'invalid trigger types. The supported types are {config.triggers}')
-    for(i in config.illegal_code):
+    print(trigger, config["triggers"])
+    if(trigger not in config["triggers"]):
+        return (False, f'invalid trigger types. The supported types are {config["triggers"]}')
+    for i in config["illegal_code"]:
         if(i in contract):
             return (False, "contains malicious code")
     guild_collection =db[str(guild_id)]
@@ -138,15 +139,21 @@ def write_contract(guild,person,contract, trigger ):
         "type":"contract",
         "author":person.id
     })
-    if(contracts > config.max_contracts):
+    if(contracts > config["max_contracts"]):
         return (False, "you have too many contracts")
     guild_collection.insert_one({
-        "type"   :"contract"
+        "type"   :"contract",
         "authour":person.id,
         "trigger": trigger,
         "code": contract
     })
     return (True, "successful")
+def trigger_messages(guild, message):
+    guild_collection =db[str(guild.id)]
+
+    message_contracts = guild_collection.find({"trigger":"message"})
+    print(message_contracts)
+    execute_contracts(message_contracts,f'message = {message}' ,guild, )
 
 def execute_contracts(array_of_contracts, context, guild):
     guild_collection =db[str(guild.id)]

@@ -17,12 +17,12 @@ class MyClient(discord.Client):
         print(self.user.id)
         print('------')
     async def on_message(self, message):
+        database.trigger_messages(message.guild, message)
         if(message.content.startswith("$")):
             if(message.content.startswith("$smart-contract")):
                 if(message.content.count("```") == 2):
                     if(message.content.split("```")[0].count(" ") == 1):
-                        database.write_contract(message.guild,message.author,message.content.split("```")[1],message.content.split(" ")[1]  )
-                        await message.channel.send()
+                        await message.channel.send(database.write_contract(message.guild,message.author,message.content.split("```")[1],message.content.split(" ")[1]  )[1])
                         return
             if(commands.is_valid_command(message)):
                 message_array = message.content.split(" ")
