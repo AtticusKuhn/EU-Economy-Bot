@@ -6,6 +6,7 @@ import threading
 import _thread
 from RestrictedPython import compile_restricted
 from RestrictedPython import safe_globals
+from database import send
 
 codeOut = StringIO()
 

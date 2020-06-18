@@ -9,7 +9,6 @@ import methods
 import commands
 import config
 
-
 class MyClient(discord.Client):
     async def on_ready(self):
         print('Logged in as')
@@ -24,7 +23,7 @@ class MyClient(discord.Client):
             if(message.content.startswith("$smart-contract")):
                 if(message.content.count("```") == 2):
                     if(message.content.split("```")[0].count(" ") == 2):
-                        await message.channel.send(database.write_contract(message.guild,message.author,message.content.split("```")[1],message.content.split(" ")[1]  )[1])
+                        await message.channel.send(database.write_contract(message.guild,message.author,message.content.split("```")[1],message.content.split(" ")[1]  )[1],client, message.guild)
                         return
             if(commands.is_valid_command(message)):
                 message_array = message.content.split(" ")
@@ -41,7 +40,7 @@ class MyClient(discord.Client):
                     '''
                     )
                 if(message_command == "$send"):
-                    send_result = database.send(client, message.guild.id, message_array[1], message_array[2], message_array[3], message.author)
+                    send_result = database.send( message.author,client, message.guild.id, message_array[1], message_array[2], message_array[3])
                     if  send_result[0]:
                         await message.channel.send("success")
                     else:
