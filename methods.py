@@ -70,13 +70,16 @@ def get_wallet(client, server_id, ping_wallet):
         return (False, "server does not exist")
 
 
-def can_access_wallet(client, server_id, person, wallet):
+def can_access_wallet(client, server_id, person_id, wallet):
     found_wallet = get_wallet(client, server_id, wallet)
     if(not found_wallet[0]):
         return False
-    if(str(found_wallet[1].id) == str(person.id)):
+    if(str(found_wallet[1].id) == str(person_id)):
         return True
-    roles = map(lambda role: role.name, person.roles)
+    for person in client.members:
+        if(person.id == person_id):
+            found_person = person
+    roles = map(lambda role: role.name, found_person.roles)
     if(found_wallet[1].name in roles):
         return True
     return False

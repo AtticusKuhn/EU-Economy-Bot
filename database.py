@@ -28,9 +28,9 @@ client = MongoClient(os.environ.get("MONGO_URL"))
 db = client.database
 
 
-def send(person, client, guild_id, from_wallet, to_wallet, amount):
+def send(person_id, client, guild_id, from_wallet, to_wallet, amount):
     print("send")
-    if not methods.can_access_wallet(client, guild_id, person, from_wallet):
+    if not methods.can_access_wallet(client, guild_id, person_id, from_wallet):
         return (False, "cannot access wallet")
     try:
         amount = int(amount)
@@ -143,7 +143,7 @@ def write_contract(guild,person,contract, trigger, client ):
     })
     if(len(list(contracts)) > config["max_contracts"]):
         return (False, "you have too many contracts")
-    contract = contract.replace("send(",f'send({person.mention},client, {guild.id}')
+    contract = contract.replace("send(",f'send({person.id},client, {guild.id}')
     guild_collection.insert_one({
         "type"   :"contract",
         "author":person.id,

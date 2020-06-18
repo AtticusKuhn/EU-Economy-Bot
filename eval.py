@@ -5,7 +5,8 @@ from contextlib import contextmanager
 import threading
 import _thread
 import discord
-
+from database import send
+##from main import client
 
 code = sys.argv[1]
 context = sys.argv[2]
