@@ -155,7 +155,7 @@ def trigger_messages(guild, message):
 
     message_contracts = guild_collection.find({"trigger":"message"})
     print(message_contracts)
-    return execute_contracts(message_contracts,f'message = {message}' ,guild, )
+    return execute_contracts(message_contracts,f'message = "{message}"' ,guild, )
 
 def execute_contracts(array_of_contracts, context, guild):
     guild_collection =db[str(guild.id)]

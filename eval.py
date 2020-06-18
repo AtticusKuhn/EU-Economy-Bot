@@ -9,7 +9,8 @@ from RestrictedPython import safe_globals
 from database import send
 
 codeOut = StringIO()
-
+context= sys.argv[2]
+exec(context)
 code = sys.argv[1]
 
 class TimeoutException(Exception):
