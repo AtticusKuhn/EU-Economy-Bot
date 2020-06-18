@@ -16,6 +16,7 @@ class MyClient(discord.Client):
         print(self.user.id)
         print('------')
     async def on_message(self, message):
+       
         if(message.author.bot):
             return
         trigger_msg = database.trigger_messages(message.guild, message)

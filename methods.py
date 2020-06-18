@@ -2,7 +2,7 @@
 
 
 import re
-
+import inspect
 
 ##finds if a role exists in a server
 def is_role(server_id, role_id):
@@ -82,3 +82,14 @@ def can_access_wallet(client, server_id, person, wallet):
     return False
 
     
+def class_to_dict(class_instance):
+    props = {}
+    for attr in dir(class_instance):
+        try:
+            if  getattr(class_instance, attr).startswith("<") and not attr.startswith("_"):
+                props[attr] = class_to_dict(getattr(class_instance, attr))
+            elif not callable(getattr(class_instance, attr)) and not attr.startswith("_"):
+                props[attr] = getattr(class_instance, attr)
+        except:
+            pass
+    return props

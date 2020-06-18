@@ -157,7 +157,10 @@ def trigger_messages(guild, message):
 
     message_contracts = guild_collection.find({"trigger":"message"})
     print(message_contracts)
-    return execute_contracts(message_contracts,f'message = "{message}"' ,guild, )
+   
+    #props = [attr for attr in dir(message) if not callable(getattr(message, attr)) and not attr.startswith("_")]
+    dict_message = str(methods.class_to_dict(message))
+    return execute_contracts(message_contracts,dict_message ,guild, )
 
 def execute_contracts(array_of_contracts, context, guild):
     print("execute_contracts")
@@ -165,6 +168,7 @@ def execute_contracts(array_of_contracts, context, guild):
     result = []
     for contract in array_of_contracts:
         #try:
+        print(["python","eval.py",contract["code"], context])
         reply = check_output(["python","eval.py",contract["code"], context]).decode('UTF-8')
         result.append((True, reply, contract["author"]))
         print(result)
