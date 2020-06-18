@@ -29,6 +29,7 @@ db = client.database
 
 
 def send(person, client, guild_id, from_wallet, to_wallet, amount):
+    print("send")
     if not methods.can_access_wallet(client, guild_id, person, from_wallet):
         return (False, "cannot access wallet")
     try:
@@ -142,7 +143,7 @@ def write_contract(guild,person,contract, trigger, client ):
     })
     if(len(list(contracts)) > config["max_contracts"]):
         return (False, "you have too many contracts")
-    contract = contract.replace("send(",f'send({person},{client}, {guild.id}')
+    contract = contract.replace("send(",f'send({person.mention},client, {guild.id}')
     guild_collection.insert_one({
         "type"   :"contract",
         "author":person.id,
@@ -151,6 +152,7 @@ def write_contract(guild,person,contract, trigger, client ):
     })
     return (True, "successful")
 def trigger_messages(guild, message):
+    print("trigger_messages")
     guild_collection =db[str(guild.id)]
 
     message_contracts = guild_collection.find({"trigger":"message"})
@@ -158,17 +160,20 @@ def trigger_messages(guild, message):
     return execute_contracts(message_contracts,f'message = "{message}"' ,guild, )
 
 def execute_contracts(array_of_contracts, context, guild):
+    print("execute_contracts")
     guild_collection =db[str(guild.id)]
     result = []
     for contract in array_of_contracts:
         #try:
         reply = check_output(["python","eval.py",contract["code"], context]).decode('UTF-8')
-        result.append((True, reply))
+        result.append((True, reply, contract["author"]))
+        print(result)
        # except Exception as e:
         #    print(e)
          #   guild_collection.delete_one( { "_id" : contract["_id"]} );
           #  reply = "that's an error: {}".format(e)
            # result.append((False, reply, contract["author"]))
+    print(result,"result")
     return result
 
 def all_db(guild):
@@ -178,7 +183,14 @@ def all_db(guild):
 
     return list(cursor)
 
-    
+def clear_contracts(guild,person_id):
+    guild_collection =db[str(guild.id)]
+    guild_collection.delete_many({
+        "type":'contract',
+        "author":person_id
+    })
+
+
 
 def alter_money(guild, amount,wallet):
     pass

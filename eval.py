@@ -7,6 +7,7 @@ import _thread
 from RestrictedPython import compile_restricted
 from RestrictedPython import safe_globals
 from database import send
+from main import client
 
 codeOut = StringIO()
 context= sys.argv[2]

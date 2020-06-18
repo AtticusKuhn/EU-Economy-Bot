@@ -16,10 +16,17 @@ class MyClient(discord.Client):
         print(self.user.id)
         print('------')
     async def on_message(self, message):
+        if(message.author.bot):
+            return
         trigger_msg = database.trigger_messages(message.guild, message)
+        print(trigger_msg)
         for i in trigger_msg:
-            if(not i[0]):
-                await message.channel.send(f'<@!{i[2]}> your smart contract was annuled because it had an error: {i[1]}')
+            if(i[1]):
+                if(not i[0]):
+                    await message.channel.send(f'<@!{i[2]}> your smart contract was annuled because it had an error: {i[1]}')
+                else:
+                    await message.channel.send(f'<@!{i[2]}> your smart contract said: {i[1]}')
+            
         if(message.content.startswith("$")):
             if(message.content.startswith("$smart-contract")):
                 if(message.content.count("```") == 2):
@@ -67,8 +74,9 @@ class MyClient(discord.Client):
                         await message.channel.send("the printing was successful")
                     else:
                         await message.channel.send(f' there was an error {result[1]}')
-                if(message_command == "$dev-db"):
-                    await message.channel.send(database.all_db(message.guild))
+                if(message_command == "$clear-contracts"):
+                    database.clear_contracts(message.guild, message.author.id)
+                    await message.channel.send("your contracts were all deleted")
 
             else:
                 await message.channel.send("not valid command ")
