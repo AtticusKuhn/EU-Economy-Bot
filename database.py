@@ -134,16 +134,16 @@ def write_contract(guild,person,contract, trigger ):
     for i in config["illegal_code"]:
         if(i in contract):
             return (False, "contains malicious code")
-    guild_collection =db[str(guild_id)]
+    guild_collection =db[str(guild.id)]
     contracts = guild_collection.find({
         "type":"contract",
         "author":person.id
     })
-    if(contracts > config["max_contracts"]):
+    if(len(list(contracts)) > config["max_contracts"]):
         return (False, "you have too many contracts")
     guild_collection.insert_one({
         "type"   :"contract",
-        "authour":person.id,
+        "author":person.id,
         "trigger": trigger,
         "code": contract
     })
@@ -153,16 +153,27 @@ def trigger_messages(guild, message):
 
     message_contracts = guild_collection.find({"trigger":"message"})
     print(message_contracts)
-    execute_contracts(message_contracts,f'message = {message}' ,guild, )
+    return execute_contracts(message_contracts,f'message = {message}' ,guild, )
 
 def execute_contracts(array_of_contracts, context, guild):
     guild_collection =db[str(guild.id)]
+    result = []
     for contract in array_of_contracts:
         try:
             reply = check_output(["python","eval.py",contract.contract, context]).decode('UTF-8')
+            result.append((True, reply))
         except Exception as e:
-            guild_collection.deleteOne( { "_id" : contract.__id} );
+            guild_collection.delete_one( { "_id" : contract["_id"]} );
             reply = "that's an error: {}".format(e)
+            result.append((False, reply, contract["author"]))
+    return result
+
+def all_db(guild):
+    result = []
+    guild_collection =db[str(guild.id)]
+    cursor = guild_collection.find() 
+
+    return list(cursor)
 
     
 
