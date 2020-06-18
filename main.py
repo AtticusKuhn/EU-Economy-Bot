@@ -2,10 +2,13 @@
 import discord
 import json
 import os
+import re
 #files
 import database 
 import methods
 import commands
+import config
+
 
 class MyClient(discord.Client):
     async def on_ready(self):
@@ -15,6 +18,11 @@ class MyClient(discord.Client):
         print('------')
     async def on_message(self, message):
         if(message.content.startswith("$")):
+            if(message.content.startswith("$smart-contract")):
+                if(message.content.count("```") == 2):
+                    database.write_contract(message.guild,message.author,message.content.split("```")[1] )
+                    await message.channel.send()
+                    return
             if(commands.is_valid_command(message)):
                 message_array = message.content.split(" ")
                 message_command = message_array[0]

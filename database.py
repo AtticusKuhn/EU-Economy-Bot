@@ -16,7 +16,10 @@ import os
 from pymongo import MongoClient
 import pprint
 import methods
+from config import config
+
 os.system("pip install dnspython")
+
 
 #import dnspython 
 
@@ -124,6 +127,15 @@ def print_money(client, guild_id, wallet, amount):
     else:
         return (False, "cannot find wallet")
 
+def write_contract(guild,person,contract ):
+    guild_collection =db[str(guild_id)]
+    contracts = guild_collection.find({
+        "type":"contract",
+        "author":person.id
+    })
+    if(contracts > config.max_contracts):
+        return (False, "you have too many contracts")
+    
 
 def alter_money(guild, amount,wallet):
     pass
