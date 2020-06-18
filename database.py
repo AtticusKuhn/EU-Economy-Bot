@@ -17,6 +17,7 @@ from pymongo import MongoClient
 import pprint
 import methods
 from config import config
+from subprocess import check_output
 
 os.system("pip install dnspython")
 
@@ -127,7 +128,7 @@ def print_money(client, guild_id, wallet, amount):
     else:
         return (False, "cannot find wallet")
 
-def write_contract(guild,person,contract, trigger,client, guild ):
+def write_contract(guild,person,contract, trigger, client ):
     print(trigger, config["triggers"])
     if(trigger not in config["triggers"]):
         return (False, f'invalid trigger types. The supported types are {config["triggers"]}')
@@ -160,13 +161,14 @@ def execute_contracts(array_of_contracts, context, guild):
     guild_collection =db[str(guild.id)]
     result = []
     for contract in array_of_contracts:
-        try:
-            reply = check_output(["python","eval.py",contract.contract, context]).decode('UTF-8')
-            result.append((True, reply))
-        except Exception as e:
-            guild_collection.delete_one( { "_id" : contract["_id"]} );
-            reply = "that's an error: {}".format(e)
-            result.append((False, reply, contract["author"]))
+        #try:
+        reply = check_output(["python","eval.py",contract["code"], context]).decode('UTF-8')
+        result.append((True, reply))
+       # except Exception as e:
+        #    print(e)
+         #   guild_collection.delete_one( { "_id" : contract["_id"]} );
+          #  reply = "that's an error: {}".format(e)
+           # result.append((False, reply, contract["author"]))
     return result
 
 def all_db(guild):

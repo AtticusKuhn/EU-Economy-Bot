@@ -18,12 +18,13 @@ class MyClient(discord.Client):
     async def on_message(self, message):
         trigger_msg = database.trigger_messages(message.guild, message)
         for i in trigger_msg:
-            await message.channel.send(f'<@!{i[2]}> your smart contract was annuled because it had an error')
+            if(not i[0]):
+                await message.channel.send(f'<@!{i[2]}> your smart contract was annuled because it had an error: {i[1]}')
         if(message.content.startswith("$")):
             if(message.content.startswith("$smart-contract")):
                 if(message.content.count("```") == 2):
                     if(message.content.split("```")[0].count(" ") == 2):
-                        await message.channel.send(database.write_contract(message.guild,message.author,message.content.split("```")[1],message.content.split(" ")[1]  )[1],client, message.guild)
+                        await message.channel.send(database.write_contract(message.guild,message.author,message.content.split("```")[1],message.content.split(" ")[1],client  )[1])
                         return
             if(commands.is_valid_command(message)):
                 message_array = message.content.split(" ")
