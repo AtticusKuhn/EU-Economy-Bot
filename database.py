@@ -127,7 +127,12 @@ def print_money(client, guild_id, wallet, amount):
     else:
         return (False, "cannot find wallet")
 
-def write_contract(guild,person,contract ):
+def write_contract(guild,person,contract, trigger ):
+    if(trigger not in config.triggers):
+        return (False, 'invalid trigger types. The supported types are {config.triggers}')
+    for(i in config.illegal_code):
+        if(i in contract):
+            return (False, "contains malicious code")
     guild_collection =db[str(guild_id)]
     contracts = guild_collection.find({
         "type":"contract",
@@ -135,6 +140,23 @@ def write_contract(guild,person,contract ):
     })
     if(contracts > config.max_contracts):
         return (False, "you have too many contracts")
+    guild_collection.insert_one({
+        "type"   :"contract"
+        "authour":person.id,
+        "trigger": trigger,
+        "code": contract
+    })
+    return (True, "successful")
+
+def execute_contracts(array_of_contracts, context, guild):
+    guild_collection =db[str(guild.id)]
+    for contract in array_of_contracts:
+        try:
+            reply = check_output(["python","eval.py",contract.contract, context]).decode('UTF-8')
+        except Exception as e:
+            guild_collection.deleteOne( { "_id" : contract.__id} );
+            reply = "that's an error: {}".format(e)
+
     
 
 def alter_money(guild, amount,wallet):

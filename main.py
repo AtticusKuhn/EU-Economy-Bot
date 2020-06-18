@@ -20,9 +20,10 @@ class MyClient(discord.Client):
         if(message.content.startswith("$")):
             if(message.content.startswith("$smart-contract")):
                 if(message.content.count("```") == 2):
-                    database.write_contract(message.guild,message.author,message.content.split("```")[1] )
-                    await message.channel.send()
-                    return
+                    if(message.content.split("```")[0].count(" ") == 1):
+                        database.write_contract(message.guild,message.author,message.content.split("```")[1],message.content.split(" ")[1]  )
+                        await message.channel.send()
+                        return
             if(commands.is_valid_command(message)):
                 message_array = message.content.split(" ")
                 message_command = message_array[0]
