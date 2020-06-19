@@ -6,11 +6,13 @@ import threading
 import _thread
 import discord
 from database import send
-##from main import client
+
 
 code = sys.argv[1]
 context = sys.argv[2]
-message = eval(context)
+context_input = eval(context)
+client = eval(sys.argv[3])
+
 
 class TimeoutException(Exception):
     def __init__(self, msg=''):
@@ -50,7 +52,7 @@ try:
             codeOut.close()
             #print(step3)
         else:
-            print(get_eval_error(code))
+            print(f' there was an error: {get_eval_error(code)}')
 except TimeoutException as e:
     codeOut = StringIO()
     sys.stdout = sys.__stdout__

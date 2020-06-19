@@ -28,17 +28,18 @@ client = MongoClient(os.environ.get("MONGO_URL"))
 db = client.database
 
 
-def send(person_id, client, guild_id, from_wallet, to_wallet, amount):
-    print("send")
-    if not methods.can_access_wallet(client, guild_id, person_id, from_wallet):
+def send(person_roles, server_members, server_roles, person_id, guild_id, from_wallet, to_wallet, amount):
+   # print("send")
+    print("to_wallet is",to_wallet)
+    if not methods.can_access_wallet(server_roles, server_members, person_roles, guild_id, person_id, from_wallet):
         return (False, "cannot access wallet")
     try:
         amount = int(amount)
     except:
         return (False,"invalid amount" )
     guild_collection =db[str(guild_id)]
-    from_wallet_id = methods.get_wallet(client, guild_id, from_wallet)
-    to_wallet_id =methods.get_wallet(client, guild_id, to_wallet)
+    from_wallet_id = methods.get_wallet(server_members,server_roles,  guild_id, from_wallet)
+    to_wallet_id =methods.get_wallet(server_members,server_roles,  guild_id, to_wallet)
     print(to_wallet_id,from_wallet_id)
     if(from_wallet_id[0] and to_wallet_id[0]):
         sender_account = guild_collection.find_one({"id": from_wallet_id[1].id})
@@ -67,9 +68,9 @@ def send(person_id, client, guild_id, from_wallet, to_wallet, amount):
 
     pass
 
-def create(guild, wallet_ping, client):
+def create(guild, wallet_ping, discord_client):
     guild_collection =db[str(guild)]
-    get_wallet_result = methods.get_wallet(client, guild, wallet_ping)
+    get_wallet_result = methods.get_wallet(discord_client, guild, wallet_ping)
     print(get_wallet_result)
     if(get_wallet_result[0]):
         if(get_wallet_result[2] == "person"):
@@ -93,9 +94,9 @@ def create(guild, wallet_ping, client):
 
 
 
-def get_balance(guild,wallet,client):
+def get_balance(guild,wallet,discord_client):
     guild_collection =db[str(guild)]
-    get_wallet_result = methods.get_wallet(client, guild, wallet)
+    get_wallet_result = methods.get_wallet(discord_client, guild, wallet)
     print(get_wallet_result)
     if(get_wallet_result[0]):
         found_wallet = guild_collection.find_one({
@@ -108,13 +109,13 @@ def get_balance(guild,wallet,client):
         return (False, "doesn't exist")
 
 
-def print_money(client, guild_id, wallet, amount):
+def print_money(discord_client, guild_id, wallet, amount):
     try:
         amount = int(amount)
     except:
         return (False,"invalid amount" )
     guild_collection =db[str(guild_id)]
-    wallet_id = methods.get_wallet(client, guild_id, wallet)
+    wallet_id = methods.get_wallet(discord_client, guild_id, wallet)
     print(wallet_id)
     if(wallet_id[0]):
         account = guild_collection.find_one({"id": wallet_id[1].id})
@@ -129,7 +130,7 @@ def print_money(client, guild_id, wallet, amount):
     else:
         return (False, "cannot find wallet")
 
-def write_contract(guild,person,contract, trigger, client ):
+def write_contract(guild,person,contract, trigger, discord_client ):
     print(trigger, config["triggers"])
     if(trigger not in config["triggers"]):
         return (False, f'invalid trigger types. The supported types are {config["triggers"]}')
@@ -143,7 +144,7 @@ def write_contract(guild,person,contract, trigger, client ):
     })
     if(len(list(contracts)) > config["max_contracts"]):
         return (False, "you have too many contracts")
-    contract = contract.replace("send(",f'send({person.id},client, {guild.id}')
+    contract = contract.replace("send(",f'send({person.id},client, {guild.id}, ')
     guild_collection.insert_one({
         "type"   :"contract",
         "author":person.id,
@@ -151,7 +152,7 @@ def write_contract(guild,person,contract, trigger, client ):
         "code": contract
     })
     return (True, "successful")
-def trigger_messages(guild, message):
+def trigger_messages(guild, message, discord_client):
     print("trigger_messages")
     guild_collection =db[str(guild.id)]
 
@@ -159,17 +160,19 @@ def trigger_messages(guild, message):
     print(message_contracts)
    
     #props = [attr for attr in dir(message) if not callable(getattr(message, attr)) and not attr.startswith("_")]
-    dict_message = str(methods.class_to_dict(message))
-    return execute_contracts(message_contracts,dict_message ,guild, )
+    dict_message =methods.class_to_dict(message)
+    dict_client = methods.class_to_dict(discord_client)
+    print("dict_client is",dict_client, "and discord_client is",discord_client)
+    return execute_contracts(message_contracts,dict_message ,guild,dict_client )
 
-def execute_contracts(array_of_contracts, context, guild):
+def execute_contracts(array_of_contracts, context, guild, dict_client):
     print("execute_contracts")
     guild_collection =db[str(guild.id)]
     result = []
     for contract in array_of_contracts:
         #try:
         print(["python","eval.py",contract["code"], context])
-        reply = check_output(["python","eval.py",contract["code"], context]).decode('UTF-8')
+        reply = check_output(["python","eval.py",contract["code"], context, dict_client]).decode('UTF-8')
         result.append((True, reply, contract["author"]))
         print(result)
        # except Exception as e:

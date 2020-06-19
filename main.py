@@ -19,7 +19,7 @@ class MyClient(discord.Client):
        
         if(message.author.bot):
             return
-        trigger_msg = database.trigger_messages(message.guild, message)
+        trigger_msg = database.trigger_messages(message.guild, message, self)
         print(trigger_msg)
         for i in trigger_msg:
             if(i[1]):
@@ -49,7 +49,12 @@ class MyClient(discord.Client):
                     '''
                     )
                 if(message_command == "$send"):
-                    send_result = database.send( message.author.id,client, message.guild.id, message_array[1], message_array[2], message_array[3])
+                    #send(person_roles, server_members, server_roles, person_id, guild_id, from_wallet, to_wallet, amount)
+                    person_roles= map(lambda role: role.id , message.author.roles)
+                    server_members = map(lambda member:member.id, message.guild.members)
+                    server_roles = map(lambda role: role.id, message.guild.roles)
+
+                    send_result = database.send(person_roles,server_members, server_roles, message.author.id, message.guild.id, message_array[1], message_array[2], message_array[3])
                     if  send_result[0]:
                         await message.channel.send("success")
                     else:

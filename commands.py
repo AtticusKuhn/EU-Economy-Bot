@@ -1,6 +1,5 @@
 ##this file handles commands
 
-
 commands_array = [
     ("$help",0),
     ("$send",3),
