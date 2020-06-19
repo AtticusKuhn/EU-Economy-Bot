@@ -44,11 +44,11 @@ class MyClient(discord.Client):
                     await message.channel.send('''
 - $help - shows all commands
 - $send (ping person) (wallet name) (amount) - sends an amount to a person from that wallet
-- $request (ping person) (amount) - requests some money from a person which her or she can accept or deny
-- $tax (ping person) (amount) (wallet name) - if you have the role "taxation" take that amount of money from the person and put it in the wallet
 - $print (wallet name) (amount) - creates an amount of money in that wallet if you have the role "printer"
-- $burn (wallet name) (amount) - deletes that much money from a wallet
 - $balance (wallet name) - returns the amount of money in the wallet
+- $links - show some links related to this bot
+- $smart-contract (trigger) (code block) - code a smart contract
+- $clear-contracts - delete all your smart contracts.
                     '''
                     )
                 if(message_command == "$send"):
@@ -71,7 +71,7 @@ class MyClient(discord.Client):
                 if(message_command == "$balance"):
                     ##guild,wallet,server_members, server_roles
                     if(database.get_balance(message.guild.id, message_array[1],server_members, server_roles)[0]):
-                        await message.channel.send(f'the balane is {database.get_balance(message.guild.id, message_array[1],server_members, server_roles)[1]}')
+                        await message.channel.send(f'the balance is {database.get_balance(message.guild.id, message_array[1],server_members, server_roles)[1]["balance"]}')
                     else:
                         await message.channel.send("there was an error")
                 if(message_command == "$print"):
@@ -87,8 +87,8 @@ class MyClient(discord.Client):
                 if(message_command == "$clear-contracts"):
                     database.clear_contracts(message.guild, message.author.id)
                     await message.channel.send("your contracts were all deleted")
-                if(message_command == "$credits"):
-                    await message.channel.send("you can find the source code, as well as advanced guides on how to use at https://github.com/eulerthedestroyer/EU-Economy-Bot")
+                if(message_command == "$links"):
+                    await message.channel.send("Github - https://github.com/eulerthedestroyer/EU-Economy-Bot \n Discord link - https://discord.gg/KfDjUz \n Bot link - https://discord.com/oauth2/authorize?scope=bot&client_id=716434826151854111")
             else:
                 await message.channel.send("not valid command ")
 

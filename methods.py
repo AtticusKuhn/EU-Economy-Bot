@@ -3,7 +3,7 @@
 
 import re
 import inspect
-
+import types
 ##finds if a role exists in a server
 def is_role(server_roles, role_id):
     server_exists = False
@@ -150,16 +150,35 @@ def can_access_wallet(server_roles, server_members, person_roles, server_id, per
 #    props.replace(">",'"')
 #    #print("final result is", props)
 #    return props
+def isclass(object):
+    """Return true if the object is a class.
+
+    Class objects provide these attributes:
+        __doc__         documentation string
+        __module__      name of module in which this class was defined"""
+    print(isinstance(object, (type, types.ClassType)))
+    return isinstance(object, (type, types.ClassType))
 
 
-def class_to_dict(class_instance):
+def class_to_dict(class_instance,depth = 0):
     props = {}
     for attr in dir(class_instance):
         try:
-            if  getattr(class_instance, attr).startswith("<") and not attr.startswith("_"):
-                props[attr] = class_to_dict(getattr(class_instance, attr))
+            if(not attr.startswith("_")):
+                print(attr, str(getattr(class_instance, attr))[0] )
+        except:
+            pass
+        if(depth>3):
+            continue
+        try:
+            if (str(getattr(class_instance, attr)).startswith("<")  or attr == "author" or attr == "channel" or attr=="Guild" or attr =="Member" )and not attr.startswith("_") and not callable(getattr(class_instance, attr)):
+                depth+=1
+                props[attr] = class_to_dict(getattr(class_instance, attr), depth)
             elif not callable(getattr(class_instance, attr)) and not attr.startswith("_"):
                 props[attr] = getattr(class_instance, attr)
         except:
             pass
+    for key in props:
+        if type(props[key]) is not str and  type(props[key]) is not int and  type(props[key]) is not list and  type(props[key]) is not dict and  type(props[key]) is not float and  type(props[key]) is not bool:
+            props[key] = ""
     return str(props)

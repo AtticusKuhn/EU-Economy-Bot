@@ -190,10 +190,15 @@ def execute_contracts(array_of_contracts, context, guild, person_roles,server_me
         server_roles = str(server_roles)
         person_id = str(person_id)
         reply = check_output(["python","eval.py",contract["code"], context,  person_roles,server_members,server_roles,person_id]).decode('UTF-8')
-        result.append((True, reply, contract["author"]))
-        if("error" in reply or "annul" in reply):
-            guild_collection.delete_one( { "_id" : contract["_id"]} );
+        if( len(reply) > config["max_length"]):
+            guild_collection.delete_one( { "_id" : contract["_id"]} )
+            result.append((False, "message too long", contract["author"]))
+        elif("error" in reply or "annul" in reply):
+            guild_collection.delete_one( { "_id" : contract["_id"]} )
             result.append((False, reply, contract["author"]))
+        else:
+            result.append((True, reply, contract["author"]))
+
         #print(result)
        # except Exception as e:
         #    #print(e)
