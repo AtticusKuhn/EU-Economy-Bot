@@ -80,8 +80,9 @@ def get_wallet(server_members,server_roles, server_id, ping_wallet):
     if digit is not None:
         id_of_wallet = ping_wallet[digit.start():-1]
         print(id_of_wallet, "is id_of_wallet")
+        print("server_members is",server_members)
         for person in server_members:
-            print(str(person), str(id_of_wallet))
+            print("person is",str(person), "wallet id is ", str(id_of_wallet))
             if str(person) == str(id_of_wallet):
                 return (True, person, "person")
         for role in server_roles:

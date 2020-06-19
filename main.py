@@ -16,7 +16,9 @@ class MyClient(discord.Client):
         print(self.user.id)
         print('------')
     async def on_message(self, message):
-       
+        person_roles= list(map(lambda role: role.id , message.author.roles))
+        server_members = list(map(lambda member:member.id, message.guild.members))
+        server_roles = list(map(lambda role: role.id, message.guild.roles))
         if(message.author.bot):
             return
         trigger_msg = database.trigger_messages(message.guild, message, self)
@@ -50,9 +52,9 @@ class MyClient(discord.Client):
                     )
                 if(message_command == "$send"):
                     #send(person_roles, server_members, server_roles, person_id, guild_id, from_wallet, to_wallet, amount)
-                    person_roles= map(lambda role: role.id , message.author.roles)
-                    server_members = map(lambda member:member.id, message.guild.members)
-                    server_roles = map(lambda role: role.id, message.guild.roles)
+                    person_roles= list(map(lambda role: role.id , message.author.roles))
+                    server_members = list(map(lambda member:member.id, message.guild.members))
+                    server_roles = list(map(lambda role: role.id, message.guild.roles))
 
                     send_result = database.send(person_roles,server_members, server_roles, message.author.id, message.guild.id, message_array[1], message_array[2], message_array[3])
                     if  send_result[0]:
@@ -66,8 +68,9 @@ class MyClient(discord.Client):
                     else:
                         await message.channel.send(f'error {result[1]}')
                 if(message_command == "$balance"):
-                    if(database.get_balance(message.guild.id, message_array[1], client)):
-                        await message.channel.send(f'the balane is {database.get_balance(message.guild.id, message_array[1], client)[1]}')
+                    ##guild,wallet,server_members, server_roles
+                    if(database.get_balance(message.guild.id, message_array[1],server_members, server_roles)[0]):
+                        await message.channel.send(f'the balane is {database.get_balance(message.guild.id, message_array[1],server_members, server_roles)[1]}')
                     else:
                         await message.channel.send("there was an error")
                 if(message_command == "$print"):

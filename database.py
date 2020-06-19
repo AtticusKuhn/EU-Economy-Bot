@@ -42,8 +42,8 @@ def send(person_roles, server_members, server_roles, person_id, guild_id, from_w
     to_wallet_id =methods.get_wallet(server_members,server_roles,  guild_id, to_wallet)
     print(to_wallet_id,from_wallet_id)
     if(from_wallet_id[0] and to_wallet_id[0]):
-        sender_account = guild_collection.find_one({"id": from_wallet_id[1].id})
-        reciever_account = guild_collection.find_one({"id": to_wallet_id[1].id})
+        sender_account = guild_collection.find_one({"id": from_wallet_id[1]})
+        reciever_account = guild_collection.find_one({"id": to_wallet_id[1]})
         if(sender_account is not None):
             if(reciever_account is not None):
                 if(sender_account["balance"] > amount):
@@ -94,13 +94,14 @@ def create(guild, wallet_ping, discord_client):
 
 
 
-def get_balance(guild,wallet,discord_client):
+def get_balance(guild,wallet,server_members, server_roles):
     guild_collection =db[str(guild)]
-    get_wallet_result = methods.get_wallet(discord_client, guild, wallet)
+    ##(server_members,server_roles,  guild_id, from_wallet)
+    get_wallet_result = methods.get_wallet(server_members,server_roles, guild, wallet)
     print(get_wallet_result)
     if(get_wallet_result[0]):
         found_wallet = guild_collection.find_one({
-            "id"     :get_wallet_result[1].id,
+            "id"     :get_wallet_result[1],
         })
         if(found_wallet is None):
             found_wallet = "cannot find wallet"
