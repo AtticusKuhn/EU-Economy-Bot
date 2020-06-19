@@ -13,4 +13,5 @@ discord = "^1.0"
 pymongo = "^3.10"
 python = "^3.8"
 restrictedpython = "^5.0"
+jsonpickle = "^1.4.1"
 [tool.poetry.dev-dependencies]

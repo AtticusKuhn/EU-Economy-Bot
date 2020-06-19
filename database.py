@@ -19,7 +19,6 @@ import methods
 from config import config
 from subprocess import check_output
 
-os.system("pip install dnspython")
 
 
 #import dnspython 
@@ -121,16 +120,17 @@ def get_balance(guild,wallet,server_members, server_roles):
         return (False, "doesn't exist")
 
 
-def print_money(discord_client, guild_id, wallet, amount):
+def print_money(server_members,server_roles, discord_client, guild_id, wallet, amount):
     try:
         amount = int(amount)
     except:
         return (False,"invalid amount" )
     guild_collection =db[str(guild_id)]
-    wallet_id = methods.get_wallet(discord_client, guild_id, wallet)
+    ##get_wallet(server_members,server_roles, server_id, ping_wallet)
+    wallet_id = methods.get_wallet(server_members,server_roles, guild_id, wallet)
     #print(wallet_id)
     if(wallet_id[0]):
-        account = guild_collection.find_one({"id": wallet_id[1].id})
+        account = guild_collection.find_one({"id": wallet_id[1]})
         if(account is not None):
                 guild_collection.update_one(
                     {"id":  account["id"] },

@@ -6,11 +6,15 @@ import threading
 import _thread
 import discord
 from database import send
+import json
+import jsonpickle
+
 
 
 code = sys.argv[1]
-context = sys.argv[2]
-context_input = eval(context)
+#json_formatted = sys.argv[2].replace("'",'"')
+context = eval(sys.argv[2])
+##context_input = eval(context)
 # person_roles,server_members,server_roles,person_id
 person_roles = eval(sys.argv[3])
 server_members = eval(sys.argv[4])

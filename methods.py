@@ -4,6 +4,9 @@
 import re
 import inspect
 import types
+import json
+import jsonpickle
+
 ##finds if a role exists in a server
 def is_role(server_roles, role_id):
     server_exists = False
@@ -164,13 +167,15 @@ def class_to_dict(class_instance,depth = 0):
     props = {}
     for attr in dir(class_instance):
         try:
-            if(not attr.startswith("_")):
-                print(attr, str(getattr(class_instance, attr))[0] )
+            if(attr.startswith("_")):
+                continue#print(attr, str(getattr(class_instance, attr))[0] )
         except:
             pass
-        if(depth>3):
+        if(depth>2):
+            props[attr] = ""
             continue
         try:
+        
             if (str(getattr(class_instance, attr)).startswith("<")  or attr == "author" or attr == "channel" or attr=="Guild" or attr =="Member" )and not attr.startswith("_") and not callable(getattr(class_instance, attr)):
                 depth+=1
                 props[attr] = class_to_dict(getattr(class_instance, attr), depth)
@@ -181,4 +186,15 @@ def class_to_dict(class_instance,depth = 0):
     for key in props:
         if type(props[key]) is not str and  type(props[key]) is not int and  type(props[key]) is not list and  type(props[key]) is not dict and  type(props[key]) is not float and  type(props[key]) is not bool:
             props[key] = ""
+        #if key.startswith("_"):
+        #    props[key] = ""
+        if type(props[key]) is list :
+            for i in key:
+                if type(i) is not str and  type(i) is not int and  type(i) is not list and  type(i) is not dict and  type(i) is not float and  type(i) is not bool:
+                    i = ""
+
+
+    #props = 
+    #print(str(props))
+   # s = jsonpickle.encode(class_instance)
     return str(props)

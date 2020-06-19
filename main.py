@@ -8,6 +8,7 @@ import database
 import methods
 import commands
 import config
+os.system("pip install dnspython")
 
 class MyClient(discord.Client):
     async def on_ready(self):
@@ -79,7 +80,8 @@ class MyClient(discord.Client):
                     if("printer" not in roles):
                         await message.channel.send("you do not have the role printer")
                         return
-                    result = database.print_money(client, message.guild.id, message_array[1], message_array[2])
+                    ##(discord_client, guild_id, wallet, amount)
+                    result = database.print_money(server_members,server_roles, client, message.guild.id, message_array[1], message_array[2])
                     if(result[0]):
                         await message.channel.send("the printing was successful")
                     else:
