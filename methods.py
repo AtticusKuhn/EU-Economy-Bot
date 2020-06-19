@@ -6,6 +6,7 @@ import inspect
 import types
 import json
 import jsonpickle
+import discord
 
 ##finds if a role exists in a server
 def is_role(server_roles, role_id):
@@ -172,29 +173,49 @@ def class_to_dict(class_instance,depth = 0):
         except:
             pass
         if(depth>2):
-            props[attr] = ""
+            props[attr] = ''
             continue
+       
+
         try:
+            print(type(getattr(class_instance, attr)) is discord.member.Member)
+            will_delete = True
         
-            if (str(getattr(class_instance, attr)).startswith("<")  or attr == "author" or attr == "channel" or attr=="Guild" or attr =="Member" )and not attr.startswith("_") and not callable(getattr(class_instance, attr)):
-                depth+=1
-                props[attr] = class_to_dict(getattr(class_instance, attr), depth)
-            elif not callable(getattr(class_instance, attr)) and not attr.startswith("_"):
+            #if (str(getattr(class_instance, attr)).startswith("<") and not attr.startswith("_") and not callable(getattr(class_instance, attr))): # or attr == "author" or attr == "channel" or attr=="Guild" or attr =="Member" )and not attr.startswith("_") and not callable(getattr(class_instance, attr)):
+            #    depth+=1
+           #     props[attr] = class_to_dict(getattr(class_instance, attr), depth)
+            #    will_delete = False
+            if not callable(getattr(class_instance, attr)) and not attr.startswith("_"):
                 props[attr] = getattr(class_instance, attr)
+                will_delete = False
+                
+            if type(getattr(class_instance, attr)) is discord.member.Member:
+                props[attr] =  class_to_dict(getattr(class_instance, attr), depth)
+                will_delete = False
+                depth+=1
+            if type(getattr(class_instance, attr)) is discord.role.Role:
+                props[attr] =  class_to_dict(getattr(class_instance, attr), depth)
+                will_delete = False
+                depth+=1
+            if type(getattr(class_instance, attr)) is list:
+
+                props[attr] = ["bruh"]
+            if will_delete:
+                props[attr] = ''
         except:
             pass
     for key in props:
         if type(props[key]) is not str and  type(props[key]) is not int and  type(props[key]) is not list and  type(props[key]) is not dict and  type(props[key]) is not float and  type(props[key]) is not bool:
-            props[key] = ""
-        #if key.startswith("_"):
-        #    props[key] = ""
-        if type(props[key]) is list :
-            for i in key:
-                if type(i) is not str and  type(i) is not int and  type(i) is not list and  type(i) is not dict and  type(i) is not float and  type(i) is not bool:
-                    i = ""
+            props[key] = class_to_dict(getattr(class_instance, attr), depth)
+        if key.startswith("_"):
+            props[key] = ''
+       # if type(props[key]) is list :
+        #    for i in key:
+         #       if type(i) is not str and  type(i) is not int and  type(i) is not list and  type(i) is not dict and  type(i) is not float and  type(i) is not bool:
+          #          i = ""
 
 
     #props = 
-    #print(str(props))
+    print(str(props))
    # s = jsonpickle.encode(class_instance)
     return str(props)
