@@ -68,22 +68,33 @@ def send(person_roles, server_members, server_roles, person_id, guild_id, from_w
 
     pass
 
-def create(guild, wallet_ping, discord_client):
+def create(guild, wallet_ping, server_members,server_roles, client):
     guild_collection =db[str(guild)]
-    get_wallet_result = methods.get_wallet(discord_client, guild, wallet_ping)
+    get_wallet_result = methods.get_wallet(server_members,server_roles, guild, wallet_ping)
     #print(get_wallet_result)
+    
     if(get_wallet_result[0]):
+        name = ""
+        for person in client.users:
+            if(person.id == get_wallet_result[1]):
+                found_person = person
+        for guild_obj in client.guilds:
+            if guild_obj.id == guild:
+                found_guild =guild_obj 
+        for role in found_guild.roles:
+            if(role.id == get_wallet_result[1]):
+                found_role = role
         if(get_wallet_result[2] == "person"):
             guild_collection.insert_one({
-                "name"   :get_wallet_result[1].name,
-                "id"     :get_wallet_result[1].id,
+                "name"   :found_person.name,
+                "id"     :found_person.id,
                 "type"   :"personal",
                 "balance": 0
              })
         else:
             guild_collection.insert_one({
-                "name"   :get_wallet_result.name,
-                "id"     :get_wallet_result.id,
+                "name"   :found_role.name,
+                "id"     :found_role.id,
                 "type"   :"role",
                 "balance": 0
              })

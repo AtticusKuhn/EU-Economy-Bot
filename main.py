@@ -63,7 +63,7 @@ class MyClient(discord.Client):
                     else:
                         await message.channel.send(f'an error occured {send_result[1]}')
                 if(message_command == "$create"):
-                    result = database.create(message.guild.id, message_array[1], client)
+                    result = database.create(message.guild.id, message_array[1], server_members, server_roles,client)
                     if(result[0]):
                         await message.channel.send("created")
                     else:
