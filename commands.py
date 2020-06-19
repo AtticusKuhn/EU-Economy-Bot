@@ -8,7 +8,8 @@ commands_array = [
    ("$balance",1),
    ("$print",2),
    ("$dev-db",0),
-   ("$clear-contracts",0)
+   ("$clear-contracts",0),
+   ("$credits",0)
    ]
 def is_valid_command(user_message):
     user_array = user_message.content.split(" ")

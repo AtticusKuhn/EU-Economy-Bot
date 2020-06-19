@@ -27,7 +27,7 @@ class MyClient(discord.Client):
         for i in trigger_msg:
             if(i[1]):
                 if(not i[0]):
-                    await message.channel.send(f'<@!{i[2]}> your smart contract was annuled because it had an error: {i[1]}')
+                    await message.channel.send(f'<@!{i[2]}> your smart contract was annuled: {i[1]}')
                 else:
                     await message.channel.send(f'<@!{i[2]}> your smart contract said: {i[1]}')
             
@@ -87,7 +87,8 @@ class MyClient(discord.Client):
                 if(message_command == "$clear-contracts"):
                     database.clear_contracts(message.guild, message.author.id)
                     await message.channel.send("your contracts were all deleted")
-
+                if(message_command == "$credits"):
+                    await message.channel.send("you can find the source code, as well as advanced guides on how to use at https://github.com/eulerthedestroyer/EU-Economy-Bot")
             else:
                 await message.channel.send("not valid command ")
 
