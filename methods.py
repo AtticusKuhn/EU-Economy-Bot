@@ -7,6 +7,7 @@ import types
 import json
 import jsonpickle
 import discord
+import threading
 
 ##finds if a role exists in a server
 def is_role(server_roles, role_id):
@@ -178,7 +179,7 @@ def class_to_dict(class_instance,depth = 0):
        
 
         try:
-            print(type(getattr(class_instance, attr)) is discord.member.Member)
+           # print(type(getattr(class_instance, attr)) is discord.member.Member)
             will_delete = True
         
             #if (str(getattr(class_instance, attr)).startswith("<") and not attr.startswith("_") and not callable(getattr(class_instance, attr))): # or attr == "author" or attr == "channel" or attr=="Guild" or attr =="Member" )and not attr.startswith("_") and not callable(getattr(class_instance, attr)):
@@ -216,6 +217,14 @@ def class_to_dict(class_instance,depth = 0):
 
 
     #props = 
-    print(str(props))
+    #print(str(props))
    # s = jsonpickle.encode(class_instance)
     return str(props)
+
+def set_interval(func, sec):
+    def func_wrapper():
+        set_interval(func, sec)
+        func()
+    t = threading.Timer(sec, func_wrapper)
+    t.start()
+    return t

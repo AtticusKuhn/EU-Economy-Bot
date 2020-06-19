@@ -71,7 +71,19 @@ def create(guild, wallet_ping, server_members,server_roles, client):
     guild_collection =db[str(guild)]
     get_wallet_result = methods.get_wallet(server_members,server_roles, guild, wallet_ping)
     #print(get_wallet_result)
-    
+    server_config =  guild_collection.find_one({
+            "type":"server",
+            "id"  : guild
+    })
+    if server_config is not None:
+        default_balance =server_config["default_balance"]
+    else:
+        guild_collection.insert_one({
+            "type":"server",
+            "id":guild,
+            "default_balance": config["default_balance"]
+        })
+        default_balance = config["default_balance"]
     if(get_wallet_result[0]):
         name = ""
         for person in client.users:
@@ -88,14 +100,14 @@ def create(guild, wallet_ping, server_members,server_roles, client):
                 "name"   :found_person.name,
                 "id"     :found_person.id,
                 "type"   :"personal",
-                "balance": 0
+                "balance": default_balance
              })
         else:
             guild_collection.insert_one({
                 "name"   :found_role.name,
                 "id"     :found_role.id,
                 "type"   :"role",
-                "balance": 0
+                "balance": default_balance
              })
         return (True, "created")
     else:
@@ -221,6 +233,30 @@ def clear_contracts(guild,person_id):
         "type":'contract',
         "author":person_id
     })
+def set_config(guild, setting_name, option):
+    guild_collection =db[str(guild.id)]
+    server_config =  guild_collection.find_one({
+        "type":"server",
+        "id"  : guild.id
+    })
+    if server_config is None:
+        guild_collection.insert_one({
+            "type":"server",
+            "id":guild.id,
+            "default_balance": config["default_balance"]
+        })
+#print(setting_name)
+    if setting_name not in config["config_options"]:
+        return "can't find that setting"
+    guild_collection.update_one({
+    '_id': server_config['_id']
+    },{
+        '$set': {
+        setting_name :option
+        }
+    })
+    return server_config
+
 
 
 

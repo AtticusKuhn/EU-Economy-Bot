@@ -3,6 +3,8 @@ import discord
 import json
 import os
 import re
+import threading
+
 #files
 import database 
 import methods
@@ -24,7 +26,8 @@ class MyClient(discord.Client):
             return
         ##(guild, message,  person_roles,server_members,server_roles,person_id)
         trigger_msg = database.trigger_messages(message.guild, message, person_roles, server_members, server_roles, message.author.id)
-        print(trigger_msg)
+        #print(trigger_msg)
+        time_trigger_msg = set_interval( database.trigger_time,  10)
         for i in trigger_msg:
             if(i[1]):
                 if(not i[0]):
@@ -91,6 +94,11 @@ class MyClient(discord.Client):
                     await message.channel.send("your contracts were all deleted")
                 if(message_command == "$links"):
                     await message.channel.send("Github - https://github.com/eulerthedestroyer/EU-Economy-Bot \n Discord link - https://discord.gg/KfDjUz \n Bot link - https://discord.com/oauth2/authorize?scope=bot&client_id=716434826151854111")
+                if(message_command == "$config"):
+                    if message.author.guild_permissions.administrator:
+                        await message.channel.send(database.set_config(message.guild ,message_array[1], message_array[2]))
+                    else:
+                        await message.channel.send("you must be an administrator to access the config")
             else:
                 await message.channel.send("not valid command ")
 
