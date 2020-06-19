@@ -11,7 +11,12 @@ from database import send
 code = sys.argv[1]
 context = sys.argv[2]
 context_input = eval(context)
-client = eval(sys.argv[3])
+# person_roles,server_members,server_roles,person_id
+person_roles = eval(sys.argv[3])
+server_members = eval(sys.argv[4])
+server_roles = eval(sys.argv[5])
+person_id = sys.argv[6]
+
 
 
 class TimeoutException(Exception):

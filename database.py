@@ -29,8 +29,8 @@ db = client.database
 
 
 def send(person_roles, server_members, server_roles, person_id, guild_id, from_wallet, to_wallet, amount):
-   # print("send")
-    print("to_wallet is",to_wallet)
+   # #print("send")
+    #print("to_wallet is",to_wallet)
     if not methods.can_access_wallet(server_roles, server_members, person_roles, guild_id, person_id, from_wallet):
         return (False, "cannot access wallet")
     try:
@@ -40,7 +40,7 @@ def send(person_roles, server_members, server_roles, person_id, guild_id, from_w
     guild_collection =db[str(guild_id)]
     from_wallet_id = methods.get_wallet(server_members,server_roles,  guild_id, from_wallet)
     to_wallet_id =methods.get_wallet(server_members,server_roles,  guild_id, to_wallet)
-    print(to_wallet_id,from_wallet_id)
+    #print(to_wallet_id,from_wallet_id)
     if(from_wallet_id[0] and to_wallet_id[0]):
         sender_account = guild_collection.find_one({"id": from_wallet_id[1]})
         reciever_account = guild_collection.find_one({"id": to_wallet_id[1]})
@@ -71,7 +71,7 @@ def send(person_roles, server_members, server_roles, person_id, guild_id, from_w
 def create(guild, wallet_ping, discord_client):
     guild_collection =db[str(guild)]
     get_wallet_result = methods.get_wallet(discord_client, guild, wallet_ping)
-    print(get_wallet_result)
+    #print(get_wallet_result)
     if(get_wallet_result[0]):
         if(get_wallet_result[2] == "person"):
             guild_collection.insert_one({
@@ -98,7 +98,7 @@ def get_balance(guild,wallet,server_members, server_roles):
     guild_collection =db[str(guild)]
     ##(server_members,server_roles,  guild_id, from_wallet)
     get_wallet_result = methods.get_wallet(server_members,server_roles, guild, wallet)
-    print(get_wallet_result)
+    #print(get_wallet_result)
     if(get_wallet_result[0]):
         found_wallet = guild_collection.find_one({
             "id"     :get_wallet_result[1],
@@ -117,7 +117,7 @@ def print_money(discord_client, guild_id, wallet, amount):
         return (False,"invalid amount" )
     guild_collection =db[str(guild_id)]
     wallet_id = methods.get_wallet(discord_client, guild_id, wallet)
-    print(wallet_id)
+    #print(wallet_id)
     if(wallet_id[0]):
         account = guild_collection.find_one({"id": wallet_id[1].id})
         if(account is not None):
@@ -132,7 +132,7 @@ def print_money(discord_client, guild_id, wallet, amount):
         return (False, "cannot find wallet")
 
 def write_contract(guild,person,contract, trigger, discord_client ):
-    print(trigger, config["triggers"])
+    #print(trigger, config["triggers"])
     if(trigger not in config["triggers"]):
         return (False, f'invalid trigger types. The supported types are {config["triggers"]}')
     for i in config["illegal_code"]:
@@ -145,7 +145,6 @@ def write_contract(guild,person,contract, trigger, discord_client ):
     })
     if(len(list(contracts)) > config["max_contracts"]):
         return (False, "you have too many contracts")
-    contract = contract.replace("send(",f'send({person.id},client, {guild.id}, ')
     guild_collection.insert_one({
         "type"   :"contract",
         "author":person.id,
@@ -153,35 +152,41 @@ def write_contract(guild,person,contract, trigger, discord_client ):
         "code": contract
     })
     return (True, "successful")
-def trigger_messages(guild, message, discord_client):
-    print("trigger_messages")
+def trigger_messages(guild, message,  person_roles,server_members,server_roles,person_id):
+    #print("trigger_messages")
     guild_collection =db[str(guild.id)]
 
     message_contracts = guild_collection.find({"trigger":"message"})
-    print(message_contracts)
+    #print(message_contracts)
    
     #props = [attr for attr in dir(message) if not callable(getattr(message, attr)) and not attr.startswith("_")]
     dict_message =methods.class_to_dict(message)
-    dict_client = methods.class_to_dict(discord_client)
-    print("dict_client is",dict_client, "and discord_client is",discord_client)
-    return execute_contracts(message_contracts,dict_message ,guild,dict_client )
+    #dict_client = methods.class_to_dict(discord_client)
+    ##print("dict_client is",dict_client, "and discord_client is",discord_client)
+    return execute_contracts(message_contracts,dict_message ,guild,person_roles,server_members,server_roles,person_id )
 
-def execute_contracts(array_of_contracts, context, guild, dict_client):
-    print("execute_contracts")
+def execute_contracts(array_of_contracts, context, guild, person_roles,server_members,server_roles,person_id):
+    #print("execute_contracts")
     guild_collection =db[str(guild.id)]
     result = []
     for contract in array_of_contracts:
         #try:
-        print(["python","eval.py",contract["code"], context])
-        reply = check_output(["python","eval.py",contract["code"], context, dict_client]).decode('UTF-8')
+        contract["code"] = contract["code"].replace("send(",f'send({person_roles}, {server_members}, {server_roles}, {person_id}, {guild.id},')
+
+        ##print(["python","eval.py",contract["code"], context])
+        person_roles = str(person_roles)
+        server_members = str(server_members)
+        server_roles = str(server_roles)
+        person_id = str(person_id)
+        reply = check_output(["python","eval.py",contract["code"], context,  person_roles,server_members,server_roles,person_id]).decode('UTF-8')
         result.append((True, reply, contract["author"]))
-        print(result)
+        #print(result)
        # except Exception as e:
-        #    print(e)
+        #    #print(e)
          #   guild_collection.delete_one( { "_id" : contract["_id"]} );
           #  reply = "that's an error: {}".format(e)
            # result.append((False, reply, contract["author"]))
-    print(result,"result")
+    #print(result,"result")
     return result
 
 def all_db(guild):

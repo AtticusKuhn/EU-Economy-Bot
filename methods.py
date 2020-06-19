@@ -58,11 +58,11 @@ def is_user(server_id,user_id):
 
 
 def get_wallet(server_members,server_roles, server_id, ping_wallet):
-    print("ping_wallet is", ping_wallet)
+    #print("ping_wallet is", ping_wallet)
     server_exists = False
     wallet_exists = False
     found_server =""
-    #print(ping_wallet,"ping_waller")
+    ##print(ping_wallet,"ping_waller")
    # try:
     #    for server in client.guilds:
      #       if(server.id == server_id):
@@ -79,10 +79,10 @@ def get_wallet(server_members,server_roles, server_id, ping_wallet):
     digit = re.search(r"\d", ping_wallet)
     if digit is not None:
         id_of_wallet = ping_wallet[digit.start():-1]
-        print(id_of_wallet, "is id_of_wallet")
-        print("server_members is",server_members)
+        #print(id_of_wallet, "is id_of_wallet")
+        #print("server_members is",server_members)
         for person in server_members:
-            print("person is",str(person), "wallet id is ", str(id_of_wallet))
+            #print("person is",str(person), "wallet id is ", str(id_of_wallet))
             if str(person) == str(id_of_wallet):
                 return (True, person, "person")
         for role in server_roles:
@@ -97,10 +97,10 @@ def get_wallet(server_members,server_roles, server_id, ping_wallet):
 
 def can_access_wallet(server_roles, server_members, person_roles, server_id, person_id, wallet):
     found_wallet = get_wallet(server_members, server_roles, server_id, wallet)
-    print("found_wallet is",found_wallet)
+    #print("found_wallet is",found_wallet)
     if(not found_wallet[0]):
         return False
-    print(str(found_wallet[1]),str(person_id) )
+    #print(str(found_wallet[1]),str(person_id) )
     if(str(found_wallet[1]) == str(person_id)):
         return True
     try:
@@ -117,36 +117,49 @@ def can_access_wallet(server_roles, server_members, person_roles, server_id, per
     return False
 
     
+#def class_to_dict(class_instance):
+#    props = {}
+#    for attr in dir(class_instance):
+#        called =True
+#        try:
+#            if not callable(getattr(class_instance, attr)):
+#                called = False
+#        except:
+#            pass
+#        if not called:
+#            if not attr.startswith("_") and getattr(class_instance, attr) is not None:
+#                #print(callable(getattr(class_instance, attr)))
+#                #print("the attr is",attr, not attr.startswith("_"))
+#                #print("getattr is",  getattr(class_instance, attr))
+#                #print(type(getattr(class_instance, attr)))
+#                if  str(getattr(class_instance, attr)).startswith("<"): #or getattr(class_instance, attr).startswith("<") : 
+#                    if type(getattr(class_instance, attr)) is not list:
+#                        props[attr] = class_to_dict(getattr(class_instance, attr))
+#                        #print("adding to 1")
+#                else: #not callable(getattr(class_instance, attr))# and not attr.startswith("_"):
+#                    props[attr] = getattr(class_instance, attr)
+#                    #print("attr is",getattr(class_instance, attr))              
+#    
+#    #for key in props:
+#     ##   if type(props[key]) is not str or type(props[key]) is not bool or type(props[key]) is not dict or type(props[key]) is not list or type(props[key]) is not int:
+#       ##     props[key] = ""
+#    props = str(props)
+#    props.replace("<",'"')
+#    props.replace("<",'"')
+#    props.replace(">",'"')
+#    props.replace(">",'"')
+#    #print("final result is", props)
+#    return props
+
+
 def class_to_dict(class_instance):
     props = {}
     for attr in dir(class_instance):
-        called =True
         try:
-            if not callable(getattr(class_instance, attr)):
-                called = False
+            if  getattr(class_instance, attr).startswith("<") and not attr.startswith("_"):
+                props[attr] = class_to_dict(getattr(class_instance, attr))
+            elif not callable(getattr(class_instance, attr)) and not attr.startswith("_"):
+                props[attr] = getattr(class_instance, attr)
         except:
             pass
-        if not called:
-            if not attr.startswith("_") and getattr(class_instance, attr) is not None:
-                print(callable(getattr(class_instance, attr)))
-                print("the attr is",attr, not attr.startswith("_"))
-                print("getattr is",  getattr(class_instance, attr))
-                print(type(getattr(class_instance, attr)))
-                if  str(getattr(class_instance, attr)).startswith("<"): #or getattr(class_instance, attr).startswith("<") : 
-                    if type(getattr(class_instance, attr)) is not list:
-                        props[attr] = class_to_dict(getattr(class_instance, attr))
-                        print("adding to 1")
-                else: #not callable(getattr(class_instance, attr))# and not attr.startswith("_"):
-                    props[attr] = getattr(class_instance, attr)
-                    print("attr is",getattr(class_instance, attr))              
-    
-    for key in props:
-        if type(props[key]) is not str or type(props[key]) is not bool or type(props[key]) is not dict or type(props[key]) is not list or type(props[key]) is not int:
-            props[key] = ""
-    props = str(props)
-    props.replace("<",'"')
-    props.replace("<",'"')
-    props.replace(">",'"')
-    props.replace(">",'"')
-    print("final result is", props)
-    return props
+    return str(props)

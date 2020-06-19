@@ -21,7 +21,8 @@ class MyClient(discord.Client):
         server_roles = list(map(lambda role: role.id, message.guild.roles))
         if(message.author.bot):
             return
-        trigger_msg = database.trigger_messages(message.guild, message, self)
+        ##(guild, message,  person_roles,server_members,server_roles,person_id)
+        trigger_msg = database.trigger_messages(message.guild, message, person_roles, server_members, server_roles, message.author.id)
         print(trigger_msg)
         for i in trigger_msg:
             if(i[1]):
