@@ -205,16 +205,20 @@ def execute_contracts(array_of_contracts, context, guild, person_roles,server_me
     result = []
     for contract in array_of_contracts:
         #try:
-        contract["code"] = contract["code"].replace("send(",f'send({person_roles}, {server_members}, {server_roles}, {person_id}, {guild.id},')
 
         ##print(["python","eval.py",contract["code"], context])
         person_roles = str(person_roles)
         server_members = str(server_members)
         server_roles = str(server_roles)
         person_id = str(person_id)
+        print(contract["args"],"is contract['args']")
         if contract["trigger"] == "day":
+            contract["code"] = contract["code"].replace("send(",f'send({contract["args"][0]}, {contract["args"][1]}, {contract["args"][2]}, {contract["args"][3]}, {guild.id},')
+
             reply = check_output(["python","eval.py",contract["code"], context,  str(contract["args"][0]),str(contract["args"][1]),str(contract["args"][2]),str(contract["args"][3])]).decode('UTF-8')
         else:
+            contract["code"] = contract["code"].replace("send(",f'send({person_roles}, {server_members}, {server_roles}, {person_id}, {guild.id},')
+
             reply = check_output(["python","eval.py",contract["code"], context,  person_roles,server_members,server_roles,person_id]).decode('UTF-8')
 
         if( len(reply) > config["max_length"]):

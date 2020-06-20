@@ -63,11 +63,11 @@ def is_user(server_id,user_id):
 
 
 def get_wallet(server_members,server_roles, server_id, ping_wallet):
-    #print("ping_wallet is", ping_wallet)
+    ##print("ping_wallet is", ping_wallet)
     server_exists = False
     wallet_exists = False
     found_server =""
-    ##print(ping_wallet,"ping_waller")
+    ###print(ping_wallet,"ping_waller")
    # try:
     #    for server in client.guilds:
      #       if(server.id == server_id):
@@ -84,10 +84,10 @@ def get_wallet(server_members,server_roles, server_id, ping_wallet):
     digit = re.search(r"\d", ping_wallet)
     if digit is not None:
         id_of_wallet = ping_wallet[digit.start():-1]
-        #print(id_of_wallet, "is id_of_wallet")
-        #print("server_members is",server_members)
+        ##print(id_of_wallet, "is id_of_wallet")
+        ##print("server_members is",server_members)
         for person in server_members:
-            #print("person is",str(person), "wallet id is ", str(id_of_wallet))
+            ##print("person is",str(person), "wallet id is ", str(id_of_wallet))
             if str(person) == str(id_of_wallet):
                 return (True, person, "person")
         for role in server_roles:
@@ -102,11 +102,14 @@ def get_wallet(server_members,server_roles, server_id, ping_wallet):
 
 def can_access_wallet(server_roles, server_members, person_roles, server_id, person_id, wallet):
     found_wallet = get_wallet(server_members, server_roles, server_id, wallet)
-    #print("found_wallet is",found_wallet)
+    ##print("found_wallet is",found_wallet)
     if(not found_wallet[0]):
+        ##print(1)
         return False
-    #print(str(found_wallet[1]),str(person_id) )
+    
+    ##print(str(found_wallet[1]),str(person_id) )
     if(str(found_wallet[1]) == str(person_id)):
+        #print(2)
         return True
     try:
         for person in client.members:
@@ -118,7 +121,9 @@ def can_access_wallet(server_roles, server_members, person_roles, server_id, per
                 found_person = person
     ##roles = map(lambda role: role.name, found_person.roles)
     if(found_wallet[1].name in person_roles):
+        #print(3)
         return True
+    #print(4)
     return False
 
     
@@ -133,17 +138,17 @@ def can_access_wallet(server_roles, server_members, person_roles, server_id, per
 #            pass
 #        if not called:
 #            if not attr.startswith("_") and getattr(class_instance, attr) is not None:
-#                #print(callable(getattr(class_instance, attr)))
-#                #print("the attr is",attr, not attr.startswith("_"))
-#                #print("getattr is",  getattr(class_instance, attr))
-#                #print(type(getattr(class_instance, attr)))
+#                ##print(callable(getattr(class_instance, attr)))
+#                ##print("the attr is",attr, not attr.startswith("_"))
+#                ##print("getattr is",  getattr(class_instance, attr))
+#                ##print(type(getattr(class_instance, attr)))
 #                if  str(getattr(class_instance, attr)).startswith("<"): #or getattr(class_instance, attr).startswith("<") : 
 #                    if type(getattr(class_instance, attr)) is not list:
 #                        props[attr] = class_to_dict(getattr(class_instance, attr))
-#                        #print("adding to 1")
+#                        ##print("adding to 1")
 #                else: #not callable(getattr(class_instance, attr))# and not attr.startswith("_"):
 #                    props[attr] = getattr(class_instance, attr)
-#                    #print("attr is",getattr(class_instance, attr))              
+#                    ##print("attr is",getattr(class_instance, attr))              
 #    
 #    #for key in props:
 #     ##   if type(props[key]) is not str or type(props[key]) is not bool or type(props[key]) is not dict or type(props[key]) is not list or type(props[key]) is not int:
@@ -153,7 +158,7 @@ def can_access_wallet(server_roles, server_members, person_roles, server_id, per
 #    props.replace("<",'"')
 #    props.replace(">",'"')
 #    props.replace(">",'"')
-#    #print("final result is", props)
+#    ##print("final result is", props)
 #    return props
 def isclass(object):
     """Return true if the object is a class.
@@ -161,7 +166,7 @@ def isclass(object):
     Class objects provide these attributes:
         __doc__         documentation string
         __module__      name of module in which this class was defined"""
-    print(isinstance(object, (type, types.ClassType)))
+    #print(isinstance(object, (type, types.ClassType)))
     return isinstance(object, (type, types.ClassType))
 
 
@@ -170,7 +175,7 @@ def class_to_dict(class_instance,depth = 0):
     for attr in dir(class_instance):
         try:
             if(attr.startswith("_")):
-                continue#print(attr, str(getattr(class_instance, attr))[0] )
+                continue##print(attr, str(getattr(class_instance, attr))[0] )
         except:
             pass
         if(depth>2):
@@ -179,7 +184,7 @@ def class_to_dict(class_instance,depth = 0):
        
 
         try:
-           # print(type(getattr(class_instance, attr)) is discord.member.Member)
+           # #print(type(getattr(class_instance, attr)) is discord.member.Member)
             will_delete = True
         
             #if (str(getattr(class_instance, attr)).startswith("<") and not attr.startswith("_") and not callable(getattr(class_instance, attr))): # or attr == "author" or attr == "channel" or attr=="Guild" or attr =="Member" )and not attr.startswith("_") and not callable(getattr(class_instance, attr)):
@@ -217,7 +222,7 @@ def class_to_dict(class_instance,depth = 0):
 
 
     #props = 
-    #print(str(props))
+    ##print(str(props))
    # s = jsonpickle.encode(class_instance)
     return str(props)
 
