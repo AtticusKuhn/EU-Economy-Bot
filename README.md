@@ -36,9 +36,9 @@ more complex transactions. Let's look at an example:
 
 $smart-contract message 
 ```
-if(message.content == "I love eu-economy-bot"):
-    send(message.author.mention, 10)
-    annul()
+if(context["content"] == "I love economy bot"):
+    print("thanks, have 4 dollars")
+    send("<@464954455029317633>",context["author"]["mention"],4)
 ```
 
 Each person can only have 3 smart contracts, and if a smart contract encounters an error, then it is automatically annuled.
