@@ -221,10 +221,10 @@ def class_to_dict(class_instance,depth = 0):
    # s = jsonpickle.encode(class_instance)
     return str(props)
 
-def set_interval(func, sec):
+def set_interval(func, sec, guild, client):
     def func_wrapper():
-        set_interval(func, sec)
-        func()
+        set_interval(func, sec, guild, client)
+        func(guild, client)
     t = threading.Timer(sec, func_wrapper)
     t.start()
     return t

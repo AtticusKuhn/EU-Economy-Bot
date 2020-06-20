@@ -154,7 +154,7 @@ def print_money(server_members,server_roles, discord_client, guild_id, wallet, a
     else:
         return (False, "cannot find wallet")
 
-def write_contract(guild,person,contract, trigger, discord_client ):
+def write_contract(guild,person,contract, trigger, discord_client, *arg ):
     #print(trigger, config["triggers"])
     if(trigger not in config["triggers"]):
         return (False, f'invalid trigger types. The supported types are {config["triggers"]}')
@@ -172,7 +172,8 @@ def write_contract(guild,person,contract, trigger, discord_client ):
         "type"   :"contract",
         "author":person.id,
         "trigger": trigger,
-        "code": contract
+        "code": contract,
+        "args":arg
     })
     return (True, "successful")
 def trigger_messages(guild, message,  person_roles,server_members,server_roles,person_id):
@@ -187,7 +188,17 @@ def trigger_messages(guild, message,  person_roles,server_members,server_roles,p
     #dict_client = methods.class_to_dict(discord_client)
     ##print("dict_client is",dict_client, "and discord_client is",discord_client)
     return execute_contracts(message_contracts,dict_message ,guild,person_roles,server_members,server_roles,person_id )
+def trigger_time(guild,client):
+    guild_collection =db[str(guild.id)]
+    message_contracts = guild_collection.find({"trigger":"day"})
+    guild_dict =methods.class_to_dict(guild)
 
+    res =  execute_contracts(message_contracts ,guild_dict, guild,  "'placeholder'","'placeholder'","'placeholder'","'placeholder'" )
+    print(res)
+    for user in guild.members:
+        if user.id == res[2]:
+            client.send_message(user, "#The message")
+    return res
 def execute_contracts(array_of_contracts, context, guild, person_roles,server_members,server_roles,person_id):
     #print("execute_contracts")
     guild_collection =db[str(guild.id)]

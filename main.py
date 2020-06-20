@@ -4,13 +4,13 @@ import json
 import os
 import re
 import threading
+os.system("pip install dnspython")
 
 #files
 import database 
 import methods
 import commands
 import config
-os.system("pip install dnspython")
 
 class MyClient(discord.Client):
     async def on_ready(self):
@@ -18,16 +18,20 @@ class MyClient(discord.Client):
         print(self.user.name)
         print(self.user.id)
         print('------')
+        for guild in self.guilds:
+            print(guild)
+            time_trigger_msg = methods.set_interval( database.trigger_time,1, guild, client)
+
     async def on_message(self, message):
         person_roles= list(map(lambda role: role.id , message.author.roles))
         server_members = list(map(lambda member:member.id, message.guild.members))
         server_roles = list(map(lambda role: role.id, message.guild.roles))
+        person_id = message.author.id
         if(message.author.bot):
             return
         ##(guild, message,  person_roles,server_members,server_roles,person_id)
         trigger_msg = database.trigger_messages(message.guild, message, person_roles, server_members, server_roles, message.author.id)
         #print(trigger_msg)
-        time_trigger_msg = set_interval( database.trigger_time,  10)
         for i in trigger_msg:
             if(i[1]):
                 if(not i[0]):
@@ -39,7 +43,7 @@ class MyClient(discord.Client):
             if(message.content.startswith("$smart-contract")):
                 if(message.content.count("```") == 2):
                     if(message.content.split("```")[0].count(" ") == 2):
-                        await message.channel.send(database.write_contract(message.guild,message.author,message.content.split("```")[1],message.content.split(" ")[1],client  )[1])
+                        await message.channel.send(database.write_contract(message.guild,message.author,message.content.split("```")[1],message.content.split(" ")[1],client, person_roles,server_members,server_roles,person_id  )[1])
                         return
             if(commands.is_valid_command(message)):
                 message_array = message.content.split(" ")
