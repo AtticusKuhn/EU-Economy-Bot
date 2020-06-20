@@ -194,10 +194,10 @@ def trigger_time(guild,client):
     guild_dict =methods.class_to_dict(guild)
 
     res =  execute_contracts(message_contracts ,guild_dict, guild,  "'placeholder'","'placeholder'","'placeholder'","'placeholder'" )
-    print(res)
     for user in guild.members:
-        if user.id == res[2]:
-            client.send_message(user, "#The message")
+        if len(res) == 1:
+            if user.id == res[0][2]:
+                print(res)
     return res
 def execute_contracts(array_of_contracts, context, guild, person_roles,server_members,server_roles,person_id):
     #print("execute_contracts")
@@ -212,7 +212,11 @@ def execute_contracts(array_of_contracts, context, guild, person_roles,server_me
         server_members = str(server_members)
         server_roles = str(server_roles)
         person_id = str(person_id)
-        reply = check_output(["python","eval.py",contract["code"], context,  person_roles,server_members,server_roles,person_id]).decode('UTF-8')
+        if contract["trigger"] == "day":
+            reply = check_output(["python","eval.py",contract["code"], context,  str(contract["args"][0]),str(contract["args"][1]),str(contract["args"][2]),str(contract["args"][3])]).decode('UTF-8')
+        else:
+            reply = check_output(["python","eval.py",contract["code"], context,  person_roles,server_members,server_roles,person_id]).decode('UTF-8')
+
         if( len(reply) > config["max_length"]):
             guild_collection.delete_one( { "_id" : contract["_id"]} )
             result.append((False, "message too long", contract["author"]))

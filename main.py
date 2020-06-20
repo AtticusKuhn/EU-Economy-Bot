@@ -20,7 +20,7 @@ class MyClient(discord.Client):
         print('------')
         for guild in self.guilds:
             print(guild)
-            time_trigger_msg = methods.set_interval( database.trigger_time,1, guild, client)
+            time_trigger_msg =  methods.set_interval( database.trigger_time,1, guild, client)
 
     async def on_message(self, message):
         person_roles= list(map(lambda role: role.id , message.author.roles))
