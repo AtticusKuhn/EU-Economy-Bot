@@ -11,6 +11,13 @@ import database
 import methods
 import commands
 from config import config
+import server
+
+server.keep_alive()
+#log = logging.getLogger('werkzeug')
+#log.setLevel(logging.ERROR)
+
+
 
 class MyClient(discord.Client):
     async def on_ready(self):

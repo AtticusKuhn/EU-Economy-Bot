@@ -14,4 +14,6 @@ pymongo = "^3.10"
 python = "^3.8"
 restrictedpython = "^5.0"
 jsonpickle = "^1.4.1"
+flask = "^1.1.2"
+flask-cors = "^3.0.8"
 [tool.poetry.dev-dependencies]

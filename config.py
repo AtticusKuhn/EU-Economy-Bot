@@ -5,5 +5,5 @@ config = {
     "max_length":1940,
     "default_balance": 100,
     "config_options":["default_balance"],
-    "day_length":3600
+    "day_length":1
 }

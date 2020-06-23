@@ -18,7 +18,7 @@ import pprint
 import methods
 from config import config
 from subprocess import check_output
-
+ import time
 
 
 #import dnspython 
@@ -189,6 +189,8 @@ def trigger_messages(guild, message,  person_roles,server_members,server_roles,p
     ##print("dict_client is",dict_client, "and discord_client is",discord_client)
     return execute_contracts(message_contracts,dict_message ,guild,person_roles,server_members,server_roles,person_id )
 def trigger_time(guild,client):
+    record_balances(guild,client)
+
     guild_collection =db[str(guild.id)]
     message_contracts = guild_collection.find({"trigger":"day"})
     guild_dict =methods.class_to_dict(guild)
@@ -277,6 +279,17 @@ def set_config(guild, setting_name, option):
     return server_config
 
 
+def  record_balances(guild,client)
+    guild_collection =db[str(guild.id)]
+    role_wallets = guild_collection.find({"type":"role"})
+    person_wallets = guild_collection.find({"type":"person"})
+
+    guild_collection.insert_one({
+        "type":"record",
+        "time":time.time(),
+        "role_wallets":role_wallets,
+        "personal_wallets":person_wallets
+    })
 
 
 def alter_money(guild, amount,wallet):
