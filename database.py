@@ -18,7 +18,7 @@ import pprint
 import methods
 from config import config
 from subprocess import check_output
- import time
+import time
 
 
 #import dnspython 
@@ -279,18 +279,26 @@ def set_config(guild, setting_name, option):
     return server_config
 
 
-def  record_balances(guild,client)
+def  record_balances(guild,client):
     guild_collection =db[str(guild.id)]
     role_wallets = guild_collection.find({"type":"role"})
     person_wallets = guild_collection.find({"type":"person"})
 
-    guild_collection.insert_one({
-        "type":"record",
-        "time":time.time(),
-        "role_wallets":role_wallets,
-        "personal_wallets":person_wallets
-    })
-
+    for wallet in person_wallets:
+        temp = wallet
+        temp["record"][time.time()] = wallet.balance
+        guild_collection.update_one(
+            {"id":  wallet["id"] },
+            { "$set":{"record":temp["record"]} }
+        )
+    for wallet in role_wallets:
+        temp = wallet
+        temp["record"][time.time()] = wallet.balance
+        guild_collection.update_one(
+            {"id":  wallet["id"] },
+            { "$set":{"record":temp["record"]} }
+        )
+    print("e")
 
 def alter_money(guild, amount,wallet):
     pass
