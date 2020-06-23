@@ -286,14 +286,18 @@ def  record_balances(guild,client):
 
     for wallet in person_wallets:
         temp = wallet
-        temp["record"][time.time()] = wallet.balance
+        if "record" not in temp:
+            temp["record"] = {}
+        temp["record"][str(time.time())] = wallet["balance"]
         guild_collection.update_one(
             {"id":  wallet["id"] },
             { "$set":{"record":temp["record"]} }
         )
     for wallet in role_wallets:
         temp = wallet
-        temp["record"][time.time()] = wallet.balance
+        if "record" not in temp:
+            temp["record"] = {}
+        temp["record"][str(time.time())] = wallet["balance"]
         guild_collection.update_one(
             {"id":  wallet["id"] },
             { "$set":{"record":temp["record"]} }
