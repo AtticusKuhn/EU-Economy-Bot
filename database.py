@@ -282,7 +282,7 @@ def set_config(guild, setting_name, option):
 def  record_balances(guild,client):
     guild_collection =db[str(guild.id)]
     role_wallets = guild_collection.find({"type":"role"})
-    person_wallets = guild_collection.find({"type":"person"})
+    person_wallets = guild_collection.find({"type":"personal"})
 
     for wallet in person_wallets:
         temp = wallet
@@ -291,7 +291,7 @@ def  record_balances(guild,client):
         temp["record"][str(time.time())] = wallet["balance"]
         guild_collection.update_one(
             {"id":  wallet["id"] },
-            { "$set":{"record":temp["record"]} }
+            { "$setOnInsert":{"record":temp["record"]} }
         )
     for wallet in role_wallets:
         temp = wallet
@@ -300,9 +300,16 @@ def  record_balances(guild,client):
         temp["record"][str(time.time())] = wallet["balance"]
         guild_collection.update_one(
             {"id":  wallet["id"] },
-            { "$set":{"record":temp["record"]} }
+            { "$setOnInsert":{"record":temp["record"]} }
         )
-    print("e")
+    print("balance recorded")
+def wallet_by_id(guild,person_id):
+    guild_collection =db[str(guild.id)]
+    print( guild_collection.find_one({"id":int(person_id)}))
+    return guild_collection.find_one({"id":int(person_id)})
+
+
+
 
 def alter_money(guild, amount,wallet):
     pass

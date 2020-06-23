@@ -5,6 +5,7 @@ import os
 import re
 import threading
 os.system("pip install dnspython")
+import matplotlib.pyplot as plt 
 
 #files
 import database 
@@ -110,6 +111,25 @@ class MyClient(discord.Client):
                         await message.channel.send(database.set_config(message.guild ,message_array[1], message_array[2]))
                     else:
                         await message.channel.send("you must be an administrator to access the config")
+                if message_command.startswith("$stats"):
+                    result = methods.get_wallet(server_members,server_roles, message.guild.id, message_array[1])
+                    if(result[0]):
+                        print(result)
+                        found_wallet = database.wallet_by_id(message.guild, result[1])
+                        if "record" in found_wallet:
+                            fig = plt.figure(figsize=(10,5))
+                            X1 = list(found_wallet["record"].keys())
+                            Y1 = list(found_wallet["record"].values())
+
+                            plt.plot(X1, Y1, label = "plot 1")
+                            fig.savefig('fig.jpg', bbox_inches='tight', dpi=150)
+                            await message.channel.send(file=discord.File('fig.jpg'))
+                            os.remove("fig.jpg")
+                            await message.channel.send(found_wallet["record"])
+                        else:
+                             await message.channel.send("can't find any stats")
+                    else:
+                        await message.channel.send("error")
             else:
                 await message.channel.send("not valid command ")
 
