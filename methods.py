@@ -8,6 +8,11 @@ import json
 import jsonpickle
 import discord
 import threading
+import os
+from pymongo import MongoClient
+
+client = MongoClient(os.environ.get("MONGO_URL"))
+db = client.database
 
 ##finds if a role exists in a server
 def is_role(server_roles, role_id):
@@ -233,3 +238,69 @@ def set_interval(func, sec, guild, client):
     t = threading.Timer(sec, func_wrapper)
     t.start()
     return t
+
+def whois(message_array, guild):
+    print("called as",message_array)
+    server_members = set(map(lambda member:member.id,guild.members))
+
+    people = set()
+    for index, word in enumerate(message_array):
+        if word == "and":
+            return people.intersection(whois(message_array[index+1:], guild))
+        if word == "or":
+            return people.union(whois(message_array[index+1:], guild))
+        if word=="not":
+            return server_members.difference(whois(message_array[index+1:], guild))
+        if word == "everyone":
+            people =  server_members
+        if word == "online":
+            online_people = set()
+            for person in guild.members:
+                if str(person.status) == "online":
+                    online_people.add(person.id)
+            
+            people =  online_people
+            continue
+        
+        if word == "offline":
+            online_people = set()
+            for person in guild.members:
+                if str(person.status) == "offline":
+                    online_people.add(person.id)
+            people =  online_people
+            continue
+        if word == "account":
+            guild_collection =db[str(guild_id)]
+            online_people = set()
+            for person in guild.members:
+                has_account = guild_collection.find_one({"id": person.id})
+                if has_account:
+                    online_people.add(person.id)
+            people =  online_people
+            continue
+        if word == "bot":
+            bots = set()
+            for person in guild.members:
+                if person.bot:
+                    bots.add(person.id)
+            people =  bots
+            continue
+        for person in guild.members:
+            print(
+                "name is",person.name,
+                "word is", word
+            )
+            if person.name == word or str(person.id) == word:
+                people.add(person.id)
+                #continue
+        for role in guild.roles:
+            if role.name == word or str(role.id) == word:
+                for person in guild.members:
+                    if role in person.roles:
+                        people.add(person.id)
+                        #continue
+        
+    print(people)
+    return people
+
+        

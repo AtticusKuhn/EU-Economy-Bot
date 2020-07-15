@@ -130,6 +130,42 @@ class MyClient(discord.Client):
                              await message.channel.send("can't find any stats")
                     else:
                         await message.channel.send("error")
+                if message_command =="$whois":
+                    people = methods.whois(message_array[1:], message.guild)
+                    return_statement = ""
+                    for person in people:
+                        return_statement = return_statement + f'<@{person}>\n'
+                    if return_statement == "":
+                        return_statement = "(no people found)"
+                    embedVar = discord.Embed(title="Result", description=f'Found {len(people)} People', color=0x00ff00)
+                    embedVar.add_field(name="People", value=return_statement, inline=False)
+                    await message.channel.send(embed=embedVar)
+                if message_command == "$send-each":
+                    people = methods.whois(message_array[3:], message.guild)
+                    return_statement = ""
+                    successful_transfer = True
+                    for person in people:
+                        send_result = database.send(person_roles,server_members, server_roles, message.author.id, message.guild.id, message_array[1], f'<@{person}>',  message_array[2])
+                        if  send_result[0]:
+                            return_statement = return_statement + f'<@{person}> - success\n'
+                        else:
+                            return_statement = return_statement + f'<@{person}> - error: {send_result[1]}\n'
+                            successful_transfer = False
+                    if return_statement == "":
+                        return_statement = "(no people found)"
+                    if successful_transfer :
+                        embedVar = discord.Embed(title="Result", color=0x00ff00)
+                    else:
+                        embedVar = discord.Embed(title="Result", color=0xff0000)
+
+                    embedVar.add_field(name="People", value=return_statement, inline=False)
+                    await message.channel.send(embed=embedVar)   
+
+                    
+
+
+                        
+
             else:
                 await message.channel.send("not valid command ")
 

@@ -11,11 +11,14 @@ commands_array = [
    ("$clear-contracts",0),
    ("$links",0),
    ("$config",2),
-   ("$stats",1)
+   ("$stats",1),
+   ("$whois", "any"),
+   ("$send-each", "any")
    ]
 def is_valid_command(user_message):
     user_array = user_message.content.split(" ")
     for command in commands_array:
-        if(command[0] == user_array[0] and command[1]==len(user_array)-1 ):
-            return True
+        if(command[0] == user_array[0]):
+            if(command[1]==len(user_array)-1  or command[1] == "any" ):
+                return True
     return False
