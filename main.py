@@ -65,6 +65,9 @@ class MyClient(discord.Client):
 - $links - show some links related to this bot
 - $smart-contract (trigger) (code block) - code a smart contract
 - $clear-contracts - delete all your smart contracts.
+- $create - create an account
+- $whois - figure out who is a condition
+- $send-each - send each person who meets a condition
                     '''
                     )
                 if(message_command == "$send"):
@@ -86,8 +89,13 @@ class MyClient(discord.Client):
                         await message.channel.send(f'error {result[1]}')
                 if(message_command == "$balance"):
                     ##guild,wallet,server_members, server_roles
-                    if(database.get_balance(message.guild.id, message_array[1],server_members, server_roles)[0]):
-                        await message.channel.send(f'the balance is {database.get_balance(message.guild.id, message_array[1],server_members, server_roles)[1]["balance"]}')
+                    bal = database.get_balance(message.guild.id, message_array[1],server_members, server_roles)
+                    if(bal[0]):
+                        res = ""
+                        for key,value in bal[1].items():
+                            if("balance" in key):
+                                res = res+ f'{key}: {value}\n'
+                        await message.channel.send(f'the balance is:\n {res}')
                     else:
                         await message.channel.send("there was an error")
                 if(message_command == "$print"):
@@ -159,10 +167,13 @@ class MyClient(discord.Client):
                         embedVar = discord.Embed(title="Result", color=0xff0000)
 
                     embedVar.add_field(name="People", value=return_statement, inline=False)
-                    await message.channel.send(embed=embedVar)   
-
-                    
-
+                    await message.channel.send(embed=embedVar)
+                if message_command == "$set-balance":
+                    if(not message.author.guild_permissions.administrator):
+                        await message.channel.send("you do not have administrator permissions")
+                        return                    
+                    result = database.set_money(server_members,server_roles,message.guild, message_array[2],message_array[1])
+                    await message.channel.send(f'{result[0]}{result[1]}')
 
                         
 

@@ -49,7 +49,6 @@ def get_eval_error(bad_code):
     try:
         exec(bad_code)
     except Exception as e: return str(e)
-
 try:
     with time_limit(1, 'sleep'):
         if isevaluable(code):

@@ -19,8 +19,7 @@ import methods
 from config import config
 from subprocess import check_output
 import time
-
-
+#import evaler
 #import dnspython 
 
 client = MongoClient(os.environ.get("MONGO_URL"))
@@ -32,6 +31,10 @@ def send(person_roles, server_members, server_roles, person_id, guild_id, from_w
     #print("to_wallet is",to_wallet)
     if not methods.can_access_wallet(server_roles, server_members, person_roles, guild_id, person_id, from_wallet):
         return (False, "cannot access wallet")
+    currency=""
+    if "-" in amount:
+        currency=f'-{amount.split("-")[1]}'
+        amount =amount.split("-")[0]
     try:
         amount = int(amount)
     except:
@@ -45,14 +48,14 @@ def send(person_roles, server_members, server_roles, person_id, guild_id, from_w
         reciever_account = guild_collection.find_one({"id": to_wallet_id[1]})
         if(sender_account is not None):
             if(reciever_account is not None):
-                if(sender_account["balance"] > amount):
+                if(sender_account[f'balance{currency}'] > amount):
                     guild_collection.update_one(
                         {"id":  sender_account["id"] },
-                        { "$inc":{"balance":-amount} }
+                        { "$inc":{f'balance{currency}':-amount} }
                     )
                     guild_collection.update_one(
                         {"id":  reciever_account["id"] },
-                        { "$inc":{"balance":amount} }
+                        { "$inc":{f'balance{currency}':amount} }
                     )
                     return (True, "transfer successful")
                 else:
@@ -126,7 +129,7 @@ def get_balance(guild,wallet,server_members, server_roles):
             "id"     :get_wallet_result[1],
         })
         if(found_wallet is None):
-            found_wallet = "cannot find wallet"
+            return (False, "cannot find wallet")
         return (True, found_wallet)
     else:
         return (False, "doesn't exist")
@@ -311,7 +314,31 @@ def wallet_by_id(guild,person_id):
 
 
 
-def alter_money(guild, amount,wallet):
-    pass
-def set_money(guild, amount, wallet):
-    pass
+def set_money(server_members,server_roles,guild, amount,wallet):
+    if("-" in amount):
+        amount_array = amount.split("-")
+        print(amount.split("-"))
+        amount = amount_array[0]
+        currency = amount_array[1]
+    if(not methods.valid_item(currency)):
+        return (False, "invaid item name")
+    if(not amount.isdigit()):
+        return (False, "incorrect ammount")
+    guild_collection =db[str(guild.id)]
+    to_wallet = methods.get_wallet(server_members,server_roles,  guild.id, wallet)
+    if(not to_wallet[0]):
+        return to_wallet
+    if 'currency' in locals():
+        guild_collection.update_one(
+            {"id":  to_wallet[1] },
+            { "$set":{f'balance-{currency}':int(amount)} }
+        )
+        return (True, f'balance was set to {amount}')
+    guild_collection.update_one(
+        {"id":  to_wallet[1] },
+        { "$set":{"balance":int(amount)} }
+    )
+    return (True, f'balance was set to {amount}')
+
+def alter_money(guild, amount, wallet, person):
+    guild_collection =db[str(guild.id)]

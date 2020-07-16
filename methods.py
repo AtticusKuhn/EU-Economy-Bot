@@ -10,6 +10,7 @@ import discord
 import threading
 import os
 from pymongo import MongoClient
+import re
 
 client = MongoClient(os.environ.get("MONGO_URL"))
 db = client.database
@@ -245,6 +246,12 @@ def whois(message_array, guild):
 
     people = set()
     for index, word in enumerate(message_array):
+        word = word.replace("<","")
+        word = word.replace("@","")
+        word = word.replace("!","")
+        word = word.replace(">","")
+        word = word.replace("&","")
+
         if word == "and":
             return people.intersection(whois(message_array[index+1:], guild))
         if word == "or":
@@ -270,7 +277,7 @@ def whois(message_array, guild):
             people =  online_people
             continue
         if word == "account":
-            guild_collection =db[str(guild_id)]
+            guild_collection =db[str(guild.id)]
             online_people = set()
             for person in guild.members:
                 has_account = guild_collection.find_one({"id": person.id})
@@ -303,4 +310,6 @@ def whois(message_array, guild):
     print(people)
     return people
 
-        
+def valid_item(name):
+    pattern = re.compile("^[A-Za-z]{3,10}$")
+    return pattern.match(name)
