@@ -136,10 +136,15 @@ def get_balance(guild,wallet,server_members, server_roles):
 
 
 def print_money(server_members,server_roles, discord_client, guild_id, wallet, amount):
+    currency=""
+    if "-" in amount:
+        currency=f'-{amount.split("-")[1]}'
+        amount =amount.split("-")[0]
     try:
         amount = int(amount)
     except:
         return (False,"invalid amount" )
+    
     guild_collection =db[str(guild_id)]
     ##get_wallet(server_members,server_roles, server_id, ping_wallet)
     wallet_id = methods.get_wallet(server_members,server_roles, guild_id, wallet)
@@ -149,7 +154,7 @@ def print_money(server_members,server_roles, discord_client, guild_id, wallet, a
         if(account is not None):
                 guild_collection.update_one(
                     {"id":  account["id"] },
-                    { "$inc":{"balance":amount} }
+                    { "$inc":{f'balance{currency}':amount} }
                 )
                 return (True, "transfer successful")
         else:
@@ -187,7 +192,15 @@ def trigger_messages(guild, message,  person_roles,server_members,server_roles,p
     #print(message_contracts)
    
     #props = [attr for attr in dir(message) if not callable(getattr(message, attr)) and not attr.startswith("_")]
-    dict_message =methods.class_to_dict(message)
+   # dict_message =str({
+    #    "message":message.id,
+   #     "type":"message",
+    #    "channel":message.channel.id,
+     #   "guild":message.guild.id
+   # })
+    dict_message = message
+    ##print(dict_message)
+    #methods.class_to_dict(message)
     #dict_client = methods.class_to_dict(discord_client)
     ##print("dict_client is",dict_client, "and discord_client is",discord_client)
     return execute_contracts(message_contracts,dict_message ,guild,person_roles,server_members,server_roles,person_id )
@@ -221,10 +234,20 @@ def execute_contracts(array_of_contracts, context, guild, person_roles,server_me
             contract["code"] = contract["code"].replace("send(",f'send({contract["args"][0]}, {contract["args"][1]}, {contract["args"][2]}, {contract["args"][3]}, {guild.id},')
 
             reply = check_output(["python","eval.py",contract["code"], context,  str(contract["args"][0]),str(contract["args"][1]),str(contract["args"][2]),str(contract["args"][3])]).decode('UTF-8')
-        else:
-            contract["code"] = contract["code"].replace("send(",f'send({person_roles}, {server_members}, {server_roles}, {person_id}, {guild.id},')
+        elif contract["trigger"] == "message":
+            try:
+                message = context
+                print("message is", message)
+                contract["code"] = contract["code"].replace("send(",f'send({person_roles}, {server_members}, {server_roles}, {person_id}, {guild.id},')
+                safe_list = ['math','acos', 'asin', 'atan', 'atan2', 'ceil', 'cos', 'cosh', 'de grees', 'e', 'exp', 'fabs', 'floor', 'fmod', 'frexp', 'hypot', 'ldexp', 'log', 'log10', 'modf', 'pi', 'pow', 'radians', 'sin', 'sinh', 'sqrt', 'tan', 'tanh', "message", "context","locals"] 
+                safe_dict = dict([ (k, locals().get(k, None)) for k in safe_list ]) 
+                safe_dict['message'] = message
+                exec(contract["code"],{"__builtins__":None},safe_dict)
+                reply = str(safe_dict["retVal"])
+            except Exception as e:
+                reply = f'error:{e}'
 
-            reply = check_output(["python","eval.py",contract["code"], context,  person_roles,server_members,server_roles,person_id]).decode('UTF-8')
+            #reply = check_output(["python","eval.py",contract["code"], context,  person_roles,server_members,server_roles,person_id]).decode('UTF-8')
 
         if( len(reply) > config["max_length"]):
             guild_collection.delete_one( { "_id" : contract["_id"]} )

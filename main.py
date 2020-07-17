@@ -26,11 +26,17 @@ class MyClient(discord.Client):
         print(self.user.name)
         print(self.user.id)
         print('------')
+        
+
         for guild in self.guilds:
             print(guild)
             time_trigger_msg =  methods.set_interval( database.trigger_time,config["day_length"], guild, client)
 
     async def on_message(self, message):
+        #guild= client.get_guild(722869324045484152)
+        #channel =  guild.get_channel(723361556909391893)
+        #msg = await channel.fetch_message(733476186327482459)
+        #print(msg)
         person_roles= list(map(lambda role: role.id , message.author.roles))
         server_members = list(map(lambda member:member.id, message.guild.members))
         server_roles = list(map(lambda role: role.id, message.guild.roles))
