@@ -1,11 +1,16 @@
 # EU-Economy-Bot
-This is an economy bot for the EU discord server
+This is an economy bot for the EU discord server, but its
+features are so flexible as to be applicable to any economy or roleplay discord server.
+
+
 
 
 
 # Inspiration
 
 I wanted a Purely Economic bot for my EU simulator server. I tried to use premade bots, such as tip.cc or unbelieveabot, but they did not suit my criterion. For each I found that many bots rely too much on gambling and games, which I did not want in the EU server. Thus I decided to build a new bot that purely focuses on economics without any games.
+This bot focuses on flexability and freedom, allowing
+members and admins to bring the most customizability to any discord server.
 
 # Commands that will be added
 
@@ -19,8 +24,12 @@ I wanted a Purely Economic bot for my EU simulator server. I tried to use premad
 - DEPRECATED $config (config option) (config setting) - if you have the admin role, configure the bot. 
     * Earn method - can be message send, time online, length sent, or none.
     * Earn amount - how much money will be earned when someone earns money
-- $stats - See stats on the economy of the server, such as inflation, GDP, and M0.
-- $smart-contract (trigger) (code) - set up a smart contract 
+- $stats (wallet)- See stats on the economy of the server, such as inflation, GDP, and M0.
+- $smart-contract (trigger) (code) - set up a smart contract
+- $send-each (condition) (amount) - send money to each person who satisfies that condition
+- $whois (condition) - returns which people satisfy condition. Useful for send-each
+
+
 
 
 # Wallets explained
@@ -36,19 +45,23 @@ more complex transactions. Let's look at an example:
 
 $smart-contract message 
 ```
-if(context["content"] == "I love economy bot"):
-    print("thanks, have 4 dollars")
-    send("<@464954455029317633>",context["author"]["mention"],4)
+output = send(message.guild,"<@464954455029317633>",message,author.mention,"1")
 ```
 
+This smart contract will send $1 from my personal account to the person who sent the message.
 Each person can only have 3 smart contracts, and if a smart contract encounters an error, then it is automatically annuled.
 
 
-# Errors
+# Alternate currencies/items
 
-- args error - you did not provide the correct amount of arguments
-- value error - you do not have enough money
-- name error - either the name of a wallet or the name of a person does not exist
+If your server wants multiple currencies or items to be supported, then we have you covered. Add a - and the name of the currency
+afterwards, as an example, $set-balance @euler 1-peso will set the peso balance of me to 1.
+
+
+# Conditions
+Commands such as send-each use conditions to allow you to send to each person who satisfies a condition. 
+The currently availiable keywords for conditions are `not, and, or, everyone, online, offline, bot`.
+You can see which people satisfy a condition with whois.
 
 
 # Invite link

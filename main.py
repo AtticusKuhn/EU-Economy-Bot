@@ -46,12 +46,13 @@ class MyClient(discord.Client):
         ##(guild, message,  person_roles,server_members,server_roles,person_id)
         trigger_msg = database.trigger_messages(message.guild, message, person_roles, server_members, server_roles, message.author.id)
         #print(trigger_msg)
-        for i in trigger_msg:
-            if(i[1]):
-                if(not i[0]):
-                    await message.channel.send(f'<@!{i[2]}> your smart contract was annuled: {i[1]}')
-                else:
-                    await message.channel.send(f'<@!{i[2]}> your smart contract said: {i[1]}')
+        if trigger_msg is not None:
+            for i in trigger_msg:
+                if(i[1]):
+                    if(not i[0]):
+                        await message.channel.send(f'<@!{i[2]}> your smart contract was annuled: {i[1]}')
+                    else:
+                        await message.channel.send(f'a smart contract said: {i[1]}')
             
         if(message.content.startswith("$")):
             if(message.content.startswith("$smart-contract")):
@@ -84,7 +85,7 @@ class MyClient(discord.Client):
 
                     send_result = database.send(person_roles,server_members, server_roles, message.author.id, message.guild.id, message_array[1], message_array[2], message_array[3])
                     if  send_result[0]:
-                        await message.channel.send("success")
+                        await message.channel.send(send_result[1])
                     else:
                         await message.channel.send(f'an error occured {send_result[1]}')
                 if(message_command == "$create"):
@@ -119,7 +120,7 @@ class MyClient(discord.Client):
                     database.clear_contracts(message.guild, message.author.id)
                     await message.channel.send("your contracts were all deleted")
                 if(message_command == "$links"):
-                    await message.channel.send("Github - https://github.com/eulerthedestroyer/EU-Economy-Bot \n Discord link - https://discord.gg/KfDjUz \n Bot link - https://discord.com/oauth2/authorize?scope=bot&client_id=716434826151854111")
+                    await message.channel.send("Github - https://github.com/eulerthedestroyer/EU-Economy-Bot \n Discord link - https://discord.gg/SxE4wC \n Bot link - https://discord.com/oauth2/authorize?scope=bot&client_id=716434826151854111")
                 if(message_command == "$config"):
                     if message.author.guild_permissions.administrator:
                         await message.channel.send(database.set_config(message.guild ,message_array[1], message_array[2]))
@@ -180,11 +181,30 @@ class MyClient(discord.Client):
                         return                    
                     result = database.set_money(server_members,server_roles,message.guild, message_array[2],message_array[1])
                     await message.channel.send(f'{result[0]}{result[1]}')
+                if message_command == "$set-balance-each":
+                    people = methods.whois(message_array[2:], message.guild)
+                    return_statement = ""
+                    successful_transfer = True
+                    for person in people:
+                        send_result = database.set_money(server_members,server_roles,message.guild, message_array[1],f'<@{person}>')
+                        if  send_result[0]:
+                            return_statement = return_statement + f'<@{person}> - success\n'
+                        else:
+                            return_statement = return_statement + f'<@{person}> - error: {send_result[1]}\n'
+                            successful_transfer = False
+                    if return_statement == "":
+                        return_statement = "(no people found)"
+                    if successful_transfer :
+                        embedVar = discord.Embed(title="Result", color=0x00ff00)
+                    else:
+                        embedVar = discord.Embed(title="Result", color=0xff0000)
 
+                    embedVar.add_field(name="People", value=return_statement, inline=False)
+                    await message.channel.send(embed=embedVar)
                         
 
             else:
-                await message.channel.send("not valid command ")
+                await message.channel.send("not valid command. If you want a list of all commands, type '$help' ")
 
 
 client = MyClient()

@@ -19,6 +19,7 @@ import methods
 from config import config
 from subprocess import check_output
 import time
+import math
 #import evaler
 #import dnspython 
 
@@ -47,6 +48,10 @@ def send(person_roles, server_members, server_roles, person_id, guild_id, from_w
     if "-" in amount:
         currency=f'-{amount.split("-")[1]}'
         amount =amount.split("-")[0]
+    percent = False
+    if "%" in amount:
+        percent = True
+        amount =amount.split("%")[0]
     try:
         amount = int(amount)
     except:
@@ -60,6 +65,10 @@ def send(person_roles, server_members, server_roles, person_id, guild_id, from_w
         reciever_account = guild_collection.find_one({"id": to_wallet_id[1]})
         if(sender_account is not None):
             if(reciever_account is not None):
+                if f'balance{currency}' not in sender_account:
+                    return (False, "you do not have this currency")
+                if percent:
+                    amount = math.floor(sender_account[f'balance{currency}']*(amount/100))
                 if(sender_account[f'balance{currency}'] > amount):
                     guild_collection.update_one(
                         {"id":  sender_account["id"] },
@@ -69,7 +78,7 @@ def send(person_roles, server_members, server_roles, person_id, guild_id, from_w
                         {"id":  reciever_account["id"] },
                         { "$inc":{f'balance{currency}':amount} }
                     )
-                    return (True, "transfer successful")
+                    return (True, f'transfer successful. you send {amount}, making your balance '+ str(sender_account[f'balance{currency}'])+f' {currency}')
                 else:
                     return (False, "insufficent funds")
             else:
@@ -246,16 +255,13 @@ def execute_contracts(array_of_contracts, context, guild, person_roles,server_me
 
         if contract["trigger"] == "day":
             #contract["code"] = contract["code"].replace("send(",f'send({contract["args"][0]}, {contract["args"][1]}, {contract["args"][2]}, {contract["args"][3]}, {guild.id},')
-
             try:
-                #message = context
                 #print("message is", message)
                 #contract["code"] = contract["code"].replace("send(",f'send({person_roles}, {server_members}, {server_roles}, {person_id}, {guild.id},')
                 safe_list = ['math','acos', 'asin', 'atan', 'atan2', 'ceil', 'cos', 'cosh', 'de grees', 'e', 'exp', 'fabs', 'floor', 'fmod', 'frexp', 'hypot', 'ldexp', 'log', 'log10', 'modf', 'pi', 'pow', 'radians', 'sin', 'sinh', 'sqrt', 'tan', 'tanh', "message", "context","locals"] 
                 safe_dict = dict([ (k, locals().get(k, None)) for k in safe_list ]) 
-                #safe_dict['message'] = message
                 exec(contract["code"],{"__builtins__":None},safe_dict)
-                reply = str(safe_dict["retVal"])
+                reply = str(safe_dict["output"])
             except Exception as e:
                 reply = f'error:{e}'
             #reply = check_output(["python","eval.py",contract["code"], context,  str(contract["args"][0]),str(contract["args"][1]),str(contract["args"][2]),str(contract["args"][3])]).decode('UTF-8')
@@ -270,9 +276,17 @@ def execute_contracts(array_of_contracts, context, guild, person_roles,server_me
 
                 safe_dict["send"] = simple_send
                 exec(contract["code"],{"__builtins__":None},safe_dict)
-                reply = str(safe_dict["retVal"])
+                if "output" in safe_dict:
+                    reply = str(safe_dict["output"])
+                else:
+                    reply = None
+                    return
             except Exception as e:
                 reply = f'error:{e}'
+                if str(e) == "'NoneType' object is not subscriptable":
+                    reply = None
+                    return
+
 
             #reply = check_output(["python","eval.py",contract["code"], context,  person_roles,server_members,server_roles,person_id]).decode('UTF-8')
 
