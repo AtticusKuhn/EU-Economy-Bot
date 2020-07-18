@@ -230,7 +230,7 @@ def trigger_time(guild,client):
 
     guild_collection =db[str(guild.id)]
     message_contracts = guild_collection.find({"trigger":"day"})
-    guild_dict =methods.class_to_dict(guild)
+    guild_dict ="idk this is a placeholder"#methods.class_to_dict(guild)
 
     res =  execute_contracts(message_contracts ,guild_dict, guild,  "'placeholder'","'placeholder'","'placeholder'","'placeholder'" )
     for user in guild.members:
@@ -252,14 +252,21 @@ def execute_contracts(array_of_contracts, context, guild, person_roles,server_me
         person_id = str(person_id)
         print(contract["args"],"is contract['args']")
         contract["code"] = contract["code"].replace("send(",f'send({contract["args"][3]},')
-
+        safe_list = ['math','acos', 'asin', 'atan', 'atan2', 'ceil', 'cos', 'cosh', 'de grees', 'e', 'exp', 'fabs', 'floor', 'fmod', 'frexp', 'hypot', 'ldexp', 'log', 'log10', 'modf', 'pi', 'pow', 'radians', 'sin', 'sinh', 'sqrt', 'tan', 'tanh', "message", "context","locals"] 
+        safe_dict = dict([ (k, locals().get(k, None)) for k in safe_list ]) 
+        safe_dict["send"] = simple_send
+        safe_dict["whois"] = methods.whois
+        
+        
         if contract["trigger"] == "day":
             #contract["code"] = contract["code"].replace("send(",f'send({contract["args"][0]}, {contract["args"][1]}, {contract["args"][2]}, {contract["args"][3]}, {guild.id},')
             try:
                 #print("message is", message)
                 #contract["code"] = contract["code"].replace("send(",f'send({person_roles}, {server_members}, {server_roles}, {person_id}, {guild.id},')
-                safe_list = ['math','acos', 'asin', 'atan', 'atan2', 'ceil', 'cos', 'cosh', 'de grees', 'e', 'exp', 'fabs', 'floor', 'fmod', 'frexp', 'hypot', 'ldexp', 'log', 'log10', 'modf', 'pi', 'pow', 'radians', 'sin', 'sinh', 'sqrt', 'tan', 'tanh', "message", "context","locals"] 
-                safe_dict = dict([ (k, locals().get(k, None)) for k in safe_list ]) 
+                
+                safe_dict["guild"]=guild
+                safe_dict['time'] = time
+
                 exec(contract["code"],{"__builtins__":None},safe_dict)
                 reply = str(safe_dict["output"])
             except Exception as e:
@@ -270,11 +277,10 @@ def execute_contracts(array_of_contracts, context, guild, person_roles,server_me
                 message = context
                 print("message is", message)
                 #contract["code"] = contract["code"].replace("send(",f'send({person_roles}, {server_members}, {server_roles}, {person_id}, {guild.id},')
-                safe_list = ['math','acos', 'asin', 'atan', 'atan2', 'ceil', 'cos', 'cosh', 'de grees', 'e', 'exp', 'fabs', 'floor', 'fmod', 'frexp', 'hypot', 'ldexp', 'log', 'log10', 'modf', 'pi', 'pow', 'radians', 'sin', 'sinh', 'sqrt', 'tan', 'tanh', "message", "context","locals"] 
-                safe_dict = dict([ (k, locals().get(k, None)) for k in safe_list ]) 
+                #safe_list = ['math','acos', 'asin', 'atan', 'atan2', 'ceil', 'cos', 'cosh', 'de grees', 'e', 'exp', 'fabs', 'floor', 'fmod', 'frexp', 'hypot', 'ldexp', 'log', 'log10', 'modf', 'pi', 'pow', 'radians', 'sin', 'sinh', 'sqrt', 'tan', 'tanh', "message", "context","locals"] 
+                #safe_dict = dict([ (k, locals().get(k, None)) for k in safe_list ]) 
                 safe_dict['message'] = message
 
-                safe_dict["send"] = simple_send
                 exec(contract["code"],{"__builtins__":None},safe_dict)
                 if "output" in safe_dict:
                     reply = str(safe_dict["output"])

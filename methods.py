@@ -293,6 +293,11 @@ def whois(message_array, guild):
             people =  bots
             continue
         for person in guild.members:
+            for perm,value in iter(person.guild_permissions):
+                print(perm,value)
+                if value and perm == word:
+                    people.add(person.id)
+        for person in guild.members:
             print(
                 "name is",person.name,
                 "word is", word
