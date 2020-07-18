@@ -25,7 +25,19 @@ import time
 client = MongoClient(os.environ.get("MONGO_URL"))
 db = client.database
 
-
+def simple_send(person_id,guild, from_wallet, to_wallet, amount):
+    found = (False, "e")
+    for person in guild.members:
+        if person.id == person_id:
+            found = (True,person)
+            break
+    if not found[0]:
+        return (False, "not found")
+    person_roles= list(map(lambda role: role.id , found[1].roles))
+    server_members = list(map(lambda member:member.id, guild.members))
+    server_roles = list(map(lambda role: role.id, guild.roles))
+    return send(person_roles, server_members, server_roles, person_id, guild.id, from_wallet, to_wallet, amount)
+ 
 def send(person_roles, server_members, server_roles, person_id, guild_id, from_wallet, to_wallet, amount):
    # #print("send")
     #print("to_wallet is",to_wallet)
@@ -230,18 +242,33 @@ def execute_contracts(array_of_contracts, context, guild, person_roles,server_me
         server_roles = str(server_roles)
         person_id = str(person_id)
         print(contract["args"],"is contract['args']")
-        if contract["trigger"] == "day":
-            contract["code"] = contract["code"].replace("send(",f'send({contract["args"][0]}, {contract["args"][1]}, {contract["args"][2]}, {contract["args"][3]}, {guild.id},')
+        contract["code"] = contract["code"].replace("send(",f'send({contract["args"][3]},')
 
-            reply = check_output(["python","eval.py",contract["code"], context,  str(contract["args"][0]),str(contract["args"][1]),str(contract["args"][2]),str(contract["args"][3])]).decode('UTF-8')
+        if contract["trigger"] == "day":
+            #contract["code"] = contract["code"].replace("send(",f'send({contract["args"][0]}, {contract["args"][1]}, {contract["args"][2]}, {contract["args"][3]}, {guild.id},')
+
+            try:
+                #message = context
+                #print("message is", message)
+                #contract["code"] = contract["code"].replace("send(",f'send({person_roles}, {server_members}, {server_roles}, {person_id}, {guild.id},')
+                safe_list = ['math','acos', 'asin', 'atan', 'atan2', 'ceil', 'cos', 'cosh', 'de grees', 'e', 'exp', 'fabs', 'floor', 'fmod', 'frexp', 'hypot', 'ldexp', 'log', 'log10', 'modf', 'pi', 'pow', 'radians', 'sin', 'sinh', 'sqrt', 'tan', 'tanh', "message", "context","locals"] 
+                safe_dict = dict([ (k, locals().get(k, None)) for k in safe_list ]) 
+                #safe_dict['message'] = message
+                exec(contract["code"],{"__builtins__":None},safe_dict)
+                reply = str(safe_dict["retVal"])
+            except Exception as e:
+                reply = f'error:{e}'
+            #reply = check_output(["python","eval.py",contract["code"], context,  str(contract["args"][0]),str(contract["args"][1]),str(contract["args"][2]),str(contract["args"][3])]).decode('UTF-8')
         elif contract["trigger"] == "message":
             try:
                 message = context
                 print("message is", message)
-                contract["code"] = contract["code"].replace("send(",f'send({person_roles}, {server_members}, {server_roles}, {person_id}, {guild.id},')
+                #contract["code"] = contract["code"].replace("send(",f'send({person_roles}, {server_members}, {server_roles}, {person_id}, {guild.id},')
                 safe_list = ['math','acos', 'asin', 'atan', 'atan2', 'ceil', 'cos', 'cosh', 'de grees', 'e', 'exp', 'fabs', 'floor', 'fmod', 'frexp', 'hypot', 'ldexp', 'log', 'log10', 'modf', 'pi', 'pow', 'radians', 'sin', 'sinh', 'sqrt', 'tan', 'tanh', "message", "context","locals"] 
                 safe_dict = dict([ (k, locals().get(k, None)) for k in safe_list ]) 
                 safe_dict['message'] = message
+
+                safe_dict["send"] = simple_send
                 exec(contract["code"],{"__builtins__":None},safe_dict)
                 reply = str(safe_dict["retVal"])
             except Exception as e:
@@ -343,8 +370,9 @@ def set_money(server_members,server_roles,guild, amount,wallet):
         print(amount.split("-"))
         amount = amount_array[0]
         currency = amount_array[1]
-    if(not methods.valid_item(currency)):
-        return (False, "invaid item name")
+    if 'currency' in locals():
+        if(not methods.valid_item(currency)):
+            return (False, "invaid item name")
     if(not amount.isdigit()):
         return (False, "incorrect ammount")
     guild_collection =db[str(guild.id)]
