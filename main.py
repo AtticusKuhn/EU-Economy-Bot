@@ -33,10 +33,6 @@ class MyClient(discord.Client):
             time_trigger_msg =  methods.set_interval( database.trigger_time,config["day_length"], guild, client)
 
     async def on_message(self, message):
-        #guild= client.get_guild(722869324045484152)
-        #channel =  guild.get_channel(723361556909391893)
-        #msg = await channel.fetch_message(733476186327482459)
-        #print(msg)
         person_roles= list(map(lambda role: role.id , message.author.roles))
         server_members = list(map(lambda member:member.id, message.guild.members))
         server_roles = list(map(lambda role: role.id, message.guild.roles))
@@ -72,9 +68,11 @@ class MyClient(discord.Client):
 - $links - show some links related to this bot
 - $smart-contract (trigger) (code block) - code a smart contract
 - $clear-contracts - delete all your smart contracts.
-- $create - create an account
-- $whois - figure out who is a condition
-- $send-each - send each person who meets a condition
+- $create (ping wallet) - create an account
+- $whois (condition) - figure out who is a condition
+- $send-each (from wallet) (ammount) (condition) - send each person who meets a condition
+- $set-balance (ping wallet) - set the balance of a wallet for admins only
+- $set-balance-each (amount) (condition) - set the balance of each person who meets a condition
                     '''
                     )
                 if(message_command == "$send"):
@@ -140,7 +138,7 @@ class MyClient(discord.Client):
                             fig.savefig('fig.jpg', bbox_inches='tight', dpi=150)
                             await message.channel.send(file=discord.File('fig.jpg'))
                             os.remove("fig.jpg")
-                            await message.channel.send(found_wallet["record"])
+                            #await message.channel.send(found_wallet["record"])
                         else:
                              await message.channel.send("can't find any stats")
                     else:
@@ -148,8 +146,11 @@ class MyClient(discord.Client):
                 if message_command =="$whois":
                     people = methods.whois(message_array[1:], message.guild)
                     return_statement = ""
+                    symbol = "\n"
+                    if len(people)> 7:
+                        symbol = ","
                     for person in people:
-                        return_statement = return_statement + f'<@{person}>\n'
+                        return_statement = return_statement + f'<@{person}>{symbol}'
                     if return_statement == "":
                         return_statement = "(no people found)"
                     embedVar = discord.Embed(title="Result", description=f'Found {len(people)} People', color=0x00ff00)
@@ -179,14 +180,17 @@ class MyClient(discord.Client):
                     if(not message.author.guild_permissions.administrator):
                         await message.channel.send("you do not have administrator permissions")
                         return                    
-                    result = database.set_money(server_members,server_roles,message.guild, message_array[2],message_array[1])
+                    result = database.set_money(message.guild, message_array[2],message_array[1])
                     await message.channel.send(f'{result[0]}{result[1]}')
                 if message_command == "$set-balance-each":
+                    if(not message.author.guild_permissions.administrator):
+                        await message.channel.send("you do not have administrator permissions")
+                        return 
                     people = methods.whois(message_array[2:], message.guild)
                     return_statement = ""
                     successful_transfer = True
                     for person in people:
-                        send_result = database.set_money(server_members,server_roles,message.guild, message_array[1],f'<@{person}>')
+                        send_result = database.set_money(message.guild, message_array[1],f'<@{person}>')
                         if  send_result[0]:
                             return_statement = return_statement + f'<@{person}> - success\n'
                         else:

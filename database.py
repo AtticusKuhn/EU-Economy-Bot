@@ -190,6 +190,8 @@ def write_contract(guild,person,contract, trigger, discord_client, *arg ):
     for i in config["illegal_code"]:
         if(i in contract):
             return (False, "contains malicious code")
+    if "set_money" in contract and not person.guild_permissions.administrator:
+        return (False, "only admins can use set_money")
     guild_collection =db[str(guild.id)]
     contracts = guild_collection.find({
         "type":"contract",
@@ -250,13 +252,13 @@ def execute_contracts(array_of_contracts, context, guild, person_roles,server_me
         server_members = str(server_members)
         server_roles = str(server_roles)
         person_id = str(person_id)
-        print(contract["args"],"is contract['args']")
+        #print(contract["args"],"is contract['args']")
         contract["code"] = contract["code"].replace("send(",f'send({contract["args"][3]},')
         safe_list = ['math','acos', 'asin', 'atan', 'atan2', 'ceil', 'cos', 'cosh', 'de grees', 'e', 'exp', 'fabs', 'floor', 'fmod', 'frexp', 'hypot', 'ldexp', 'log', 'log10', 'modf', 'pi', 'pow', 'radians', 'sin', 'sinh', 'sqrt', 'tan', 'tanh', "message", "context","locals"] 
         safe_dict = dict([ (k, locals().get(k, None)) for k in safe_list ]) 
         safe_dict["send"] = simple_send
         safe_dict["whois"] = methods.whois
-        
+        safe_dict["set_money"] = set_money
         
         if contract["trigger"] == "day":
             #contract["code"] = contract["code"].replace("send(",f'send({contract["args"][0]}, {contract["args"][1]}, {contract["args"][2]}, {contract["args"][3]}, {guild.id},')
@@ -275,27 +277,24 @@ def execute_contracts(array_of_contracts, context, guild, person_roles,server_me
         elif contract["trigger"] == "message":
             try:
                 message = context
-                print("message is", message)
+                #print("message is", message)
                 #contract["code"] = contract["code"].replace("send(",f'send({person_roles}, {server_members}, {server_roles}, {person_id}, {guild.id},')
                 #safe_list = ['math','acos', 'asin', 'atan', 'atan2', 'ceil', 'cos', 'cosh', 'de grees', 'e', 'exp', 'fabs', 'floor', 'fmod', 'frexp', 'hypot', 'ldexp', 'log', 'log10', 'modf', 'pi', 'pow', 'radians', 'sin', 'sinh', 'sqrt', 'tan', 'tanh', "message", "context","locals"] 
                 #safe_dict = dict([ (k, locals().get(k, None)) for k in safe_list ]) 
                 safe_dict['message'] = message
 
                 exec(contract["code"],{"__builtins__":None},safe_dict)
+                #print(safe_dict)
                 if "output" in safe_dict:
                     reply = str(safe_dict["output"])
                 else:
                     reply = None
-                    return
+                    continue
             except Exception as e:
                 reply = f'error:{e}'
-                if str(e) == "'NoneType' object is not subscriptable":
-                    reply = None
-                    return
-
+               
 
             #reply = check_output(["python","eval.py",contract["code"], context,  person_roles,server_members,server_roles,person_id]).decode('UTF-8')
-
         if( len(reply) > config["max_length"]):
             guild_collection.delete_one( { "_id" : contract["_id"]} )
             result.append((False, "message too long", contract["author"]))
@@ -359,13 +358,20 @@ def  record_balances(guild,client):
 
     for wallet in person_wallets:
         temp = wallet
-        if "record" not in temp:
+       # if "record" not in temp:
+           # temp["record"] = {}
+        #print(f'inital of {wallet["name"]} is {wallet["record"]}')
+        try:
+            temp["record"][str(time.time())] = wallet["balance"]
+        except:
             temp["record"] = {}
-        temp["record"][str(time.time())] = wallet["balance"]
+            temp["record"][str(time.time())] = wallet["balance"]
+
         guild_collection.update_one(
             {"id":  wallet["id"] },
-            { "$setOnInsert":{"record":temp["record"]} }
+            { "$set":{"record":temp["record"]} }
         )
+        print(f'recording the wallet of {wallet["name"]}, it is {wallet["record"]}')
     for wallet in role_wallets:
         temp = wallet
         if "record" not in temp:
@@ -373,7 +379,7 @@ def  record_balances(guild,client):
         temp["record"][str(time.time())] = wallet["balance"]
         guild_collection.update_one(
             {"id":  wallet["id"] },
-            { "$setOnInsert":{"record":temp["record"]} }
+            { "$set":{"record":temp["record"]} }
         )
     print("balance recorded")
 def wallet_by_id(guild,person_id):
@@ -384,7 +390,9 @@ def wallet_by_id(guild,person_id):
 
 
 
-def set_money(server_members,server_roles,guild, amount,wallet):
+def set_money(guild, amount,wallet):
+    server_members = list(map(lambda member:member.id, guild.members))
+    server_roles = list(map(lambda role: role.id, guild.roles))
     if("-" in amount):
         amount_array = amount.split("-")
         print(amount.split("-"))
