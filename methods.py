@@ -120,21 +120,19 @@ def can_access_wallet(guild, person_id, wallet):
     if(not found_wallet[0]):
         ##print(1)
         return False
+    if member.guild_permissions.administrator:
+        return True
     
     ##print(str(found_wallet[1]),str(person_id) )
-    if(str(found_wallet[1]) == str(person_id)):
+    if(str(found_wallet[1].id) == str(person_id)):
         #print(2)
         return True
-    try:
-        for person in client.members:
-            if(person.id == person_id):
-                found_person = person
-    except:
-        for person in client["members"]:
-            if(person.id == person_id):
-                found_person = person
+
+    #for person in client["members"]:
+    #    if(person.id == person_id):
+    #            found_person = person
     ##roles = map(lambda role: role.name, found_person.roles)
-    if(found_wallet[1].name in person_roles):
+    if(found_wallet[1].id in person_roles):
         #print(3)
         return True
     #print(4)

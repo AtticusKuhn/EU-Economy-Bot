@@ -60,12 +60,12 @@ def send(person_id, guild, from_wallet, to_wallet, amount):
     except:
         return (False,"invalid amount" )
     guild_collection =db[str(guild.id)]
-    from_wallet_id = methods.get_wallet(server_members,server_roles,  guild_id, from_wallet)
-    to_wallet_id =methods.get_wallet(server_members,server_roles,  guild_id, to_wallet)
+    from_wallet_id = methods.get_wallet(guild, from_wallet)
+    to_wallet_id =methods.get_wallet(guild, to_wallet)
     #print(to_wallet_id,from_wallet_id)
     if(from_wallet_id[0] and to_wallet_id[0]):
-        sender_account = guild_collection.find_one({"id": from_wallet_id[1]})
-        reciever_account = guild_collection.find_one({"id": to_wallet_id[1]})
+        sender_account = guild_collection.find_one({"id": from_wallet_id[1].id})
+        reciever_account = guild_collection.find_one({"id": to_wallet_id[1].id})
         if(sender_account is not None):
             if(reciever_account is not None):
                 if f'balance{currency}' not in sender_account:
@@ -143,14 +143,14 @@ def create(guild, wallet_ping, server_members,server_roles, client):
 
 
 
-def get_balance(guild,wallet,server_members, server_roles):
-    guild_collection =db[str(guild)]
+def get_balance(guild,wallet):
+    guild_collection =db[str(guild.id)]
     ##(server_members,server_roles,  guild_id, from_wallet)
-    get_wallet_result = methods.get_wallet(server_members,server_roles, guild, wallet)
+    get_wallet_result = methods.get_wallet(guild, wallet)
     #print(get_wallet_result)
     if(get_wallet_result[0]):
         found_wallet = guild_collection.find_one({
-            "id"     :get_wallet_result[1],
+            "id"     :get_wallet_result[1].id,
         })
         if(found_wallet is None):
             return (False, "cannot find wallet")
@@ -409,17 +409,17 @@ def set_money(guild, amount,wallet):
     if(not amount.isdigit()):
         return (False, "incorrect ammount")
     guild_collection =db[str(guild.id)]
-    to_wallet = methods.get_wallet(server_members,server_roles,  guild.id, wallet)
+    to_wallet = methods.get_wallet(guild, wallet)
     if(not to_wallet[0]):
         return to_wallet
     if 'currency' in locals():
         guild_collection.update_one(
-            {"id":  to_wallet[1] },
+            {"id":  to_wallet[1].id },
             { "$set":{f'balance-{currency}':int(amount)} }
         )
         return (True, f'balance was set to {amount}')
     guild_collection.update_one(
-        {"id":  to_wallet[1] },
+        {"id":  to_wallet[1].id },
         { "$set":{"balance":int(amount)} }
     )
     return (True, f'balance was set to {amount}')

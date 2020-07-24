@@ -96,7 +96,7 @@ class MyClient(discord.Client):
                         await message.channel.send(f'error {result[1]}')
                 if(message_command == "$balance"):
                     ##guild,wallet,server_members, server_roles
-                    bal = database.get_balance(message.guild.id, message_array[1],server_members, server_roles)
+                    bal = database.get_balance(message.guild, message_array[1],server_members, server_roles)
                     if(bal[0]):
                         res = ""
                         for key,value in bal[1].items():
