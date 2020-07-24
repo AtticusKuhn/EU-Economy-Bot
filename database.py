@@ -95,32 +95,35 @@ def send(person_id, guild, from_wallet, to_wallet, amount):
     pass
 
 def create(guild, wallet_ping, server_members,server_roles, client):
-    guild_collection =db[str(guild)]
-    get_wallet_result = methods.get_wallet(server_members,server_roles, guild, wallet_ping)
+    guild_collection =db[str(guild.id)]
+    get_wallet_result = methods.get_wallet( guild, wallet_ping)
+    
     #print(get_wallet_result)
     server_config =  guild_collection.find_one({
             "type":"server",
-            "id"  : guild
+            "id"  : guild.id
     })
     if server_config is not None:
         default_balance =server_config["default_balance"]
     else:
         guild_collection.insert_one({
             "type":"server",
-            "id":guild,
+            "id":guild.id,
             "default_balance": config["default_balance"]
         })
         default_balance = config["default_balance"]
     if(get_wallet_result[0]):
+        if guild_collection.find_one({ "id":get_wallet_result[1].id}):
+            return (False, "account already exists")
         name = ""
         for person in client.users:
-            if(person.id == get_wallet_result[1]):
+            if(person.id == get_wallet_result[1].id):
                 found_person = person
-        for guild_obj in client.guilds:
-            if guild_obj.id == guild:
-                found_guild =guild_obj 
-        for role in found_guild.roles:
-            if(role.id == get_wallet_result[1]):
+       # for guild_obj in client.guilds:
+       #     if guild_obj.id == guild:
+       #         found_guild =guild_obj 
+        for role in guild.roles:
+            if(role.id == get_wallet_result[1].id):
                 found_role = role
         if(get_wallet_result[2] == "person"):
             guild_collection.insert_one({
@@ -159,7 +162,7 @@ def get_balance(guild,wallet):
         return (False, "doesn't exist")
 
 
-def print_money(server_members,server_roles, discord_client, guild_id, wallet, amount):
+def print_money(guild, wallet, amount):
     currency=""
     if "-" in amount:
         currency=f'-{amount.split("-")[1]}'
@@ -169,12 +172,12 @@ def print_money(server_members,server_roles, discord_client, guild_id, wallet, a
     except:
         return (False,"invalid amount" )
     
-    guild_collection =db[str(guild_id)]
+    guild_collection =db[str(guild.id)]
     ##get_wallet(server_members,server_roles, server_id, ping_wallet)
-    wallet_id = methods.get_wallet(server_members,server_roles, guild_id, wallet)
+    wallet_id = methods.get_wallet(guild, wallet)
     #print(wallet_id)
     if(wallet_id[0]):
-        account = guild_collection.find_one({"id": wallet_id[1]})
+        account = guild_collection.find_one({"id": wallet_id[1].id})
         if(account is not None):
                 guild_collection.update_one(
                     {"id":  account["id"] },

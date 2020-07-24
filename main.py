@@ -89,14 +89,14 @@ class MyClient(discord.Client):
                     else:
                         await message.channel.send(f'an error occured {send_result[1]}')
                 if(message_command == "$create"):
-                    result = database.create(message.guild.id, message_array[1], server_members, server_roles,client)
+                    result = database.create(message.guild, message_array[1], server_members, server_roles,client)
                     if(result[0]):
                         await message.channel.send("created")
                     else:
                         await message.channel.send(f'error {result[1]}')
                 if(message_command == "$balance"):
                     ##guild,wallet,server_members, server_roles
-                    bal = database.get_balance(message.guild, message_array[1],server_members, server_roles)
+                    bal = database.get_balance(message.guild, message_array[1])
                     if(bal[0]):
                         res = ""
                         for key,value in bal[1].items():
@@ -111,7 +111,7 @@ class MyClient(discord.Client):
                         await message.channel.send("you do not have the role printer")
                         return
                     ##(discord_client, guild_id, wallet, amount)
-                    result = database.print_money(server_members,server_roles, client, message.guild.id, message_array[1], message_array[2])
+                    result = database.print_money( message.guild, message_array[1], message_array[2])
                     if(result[0]):
                         await message.channel.send("the printing was successful")
                     else:
