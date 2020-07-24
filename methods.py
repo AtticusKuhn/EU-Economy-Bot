@@ -68,7 +68,9 @@ def is_user(server_id,user_id):
 
 
 
-def get_wallet(server_members,server_roles, server_id, ping_wallet):
+def get_wallet(guild, ping_wallet):
+    #server_members = list(map(lambda member:member.id, message.guild.members))
+    #server_roles = list(map(lambda role: role.id, message.guild.roles))
     ##print("ping_wallet is", ping_wallet)
     server_exists = False
     wallet_exists = False
@@ -92,12 +94,12 @@ def get_wallet(server_members,server_roles, server_id, ping_wallet):
         id_of_wallet = ping_wallet[digit.start():-1]
         ##print(id_of_wallet, "is id_of_wallet")
         ##print("server_members is",server_members)
-        for person in server_members:
+        for person in guild.members:
             ##print("person is",str(person), "wallet id is ", str(id_of_wallet))
-            if str(person) == str(id_of_wallet):
+            if str(person.id) == str(id_of_wallet):
                 return (True, person, "person")
-        for role in server_roles:
-            if str(role) == str(id_of_wallet):
+        for role in guild.roles:
+            if str(role.id) == str(id_of_wallet):
                 return (True, role, "role")
         return (False, "not found")
     else:
@@ -106,8 +108,14 @@ def get_wallet(server_members,server_roles, server_id, ping_wallet):
      #   return (False, "server does not exist")
 
 
-def can_access_wallet(server_roles, server_members, person_roles, server_id, person_id, wallet):
-    found_wallet = get_wallet(server_members, server_roles, server_id, wallet)
+def can_access_wallet(guild, person_id, wallet):
+    member = discord.utils.find(lambda m: m.id == person_id, guild.members)
+    person_roles= list(map(lambda role: role.id , member.roles))
+    server_members = list(map(lambda member:member.id, guild.members))
+    server_roles = list(map(lambda role: role.id, guild.roles))
+    found_wallet = get_wallet(guild, wallet)
+    ##def get_wallet(server_members,server_roles, server_id, ping_wallet):
+
     ##print("found_wallet is",found_wallet)
     if(not found_wallet[0]):
         ##print(1)

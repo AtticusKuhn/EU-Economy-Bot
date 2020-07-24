@@ -31,8 +31,10 @@ class MyClient(discord.Client):
         for guild in self.guilds:
             print(guild)
             time_trigger_msg =  methods.set_interval( database.trigger_time,config["day_length"], guild, client)
-
+    #async def on_error(self,error, thing):
+     #   print("there was an error")
     async def on_message(self, message):
+        message.content = message.content.replace("  "," ")
         person_roles= list(map(lambda role: role.id , message.author.roles))
         server_members = list(map(lambda member:member.id, message.guild.members))
         server_roles = list(map(lambda role: role.id, message.guild.roles))
@@ -81,7 +83,7 @@ class MyClient(discord.Client):
                     server_members = list(map(lambda member:member.id, message.guild.members))
                     server_roles = list(map(lambda role: role.id, message.guild.roles))
 
-                    send_result = database.send(person_roles,server_members, server_roles, message.author.id, message.guild.id, message_array[1], message_array[2], message_array[3])
+                    send_result = database.send(message.author.id, message.guild, message_array[1], message_array[2], message_array[3])
                     if  send_result[0]:
                         await message.channel.send(send_result[1])
                     else:
@@ -149,7 +151,10 @@ class MyClient(discord.Client):
                     symbol = "\n"
                     if len(people)> 7:
                         symbol = ","
-                    for person in people:
+                    for index,person in enumerate(people):
+                        if len(return_statement) > 700:
+                            return_statement += f' and {len(people)-index} others'
+                            break
                         return_statement = return_statement + f'<@{person}>{symbol}'
                     if return_statement == "":
                         return_statement = "(no people found)"
@@ -161,7 +166,7 @@ class MyClient(discord.Client):
                     return_statement = ""
                     successful_transfer = True
                     for person in people:
-                        send_result = database.send(person_roles,server_members, server_roles, message.author.id, message.guild.id, message_array[1], f'<@{person}>',  message_array[2])
+                        send_result = database.send(message.author.id, message.guild, message_array[1], f'<@{person}>',  message_array[2])
                         if  send_result[0]:
                             return_statement = return_statement + f'<@{person}> - success\n'
                         else:

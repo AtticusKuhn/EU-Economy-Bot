@@ -20,6 +20,9 @@ from config import config
 from subprocess import check_output
 import time
 import math
+import logging
+import inspect
+logging.basicConfig(level=logging.INFO)
 #import evaler
 #import dnspython 
 
@@ -39,10 +42,10 @@ def simple_send(person_id,guild, from_wallet, to_wallet, amount):
     server_roles = list(map(lambda role: role.id, guild.roles))
     return send(person_roles, server_members, server_roles, person_id, guild.id, from_wallet, to_wallet, amount)
  
-def send(person_roles, server_members, server_roles, person_id, guild_id, from_wallet, to_wallet, amount):
+def send(person_id, guild, from_wallet, to_wallet, amount):
    # #print("send")
     #print("to_wallet is",to_wallet)
-    if not methods.can_access_wallet(server_roles, server_members, person_roles, guild_id, person_id, from_wallet):
+    if not methods.can_access_wallet(guild, person_id, from_wallet):
         return (False, "cannot access wallet")
     currency=""
     if "-" in amount:
@@ -56,7 +59,7 @@ def send(person_roles, server_members, server_roles, person_id, guild_id, from_w
         amount = int(amount)
     except:
         return (False,"invalid amount" )
-    guild_collection =db[str(guild_id)]
+    guild_collection =db[str(guild.id)]
     from_wallet_id = methods.get_wallet(server_members,server_roles,  guild_id, from_wallet)
     to_wallet_id =methods.get_wallet(server_members,server_roles,  guild_id, to_wallet)
     #print(to_wallet_id,from_wallet_id)
@@ -277,6 +280,8 @@ def execute_contracts(array_of_contracts, context, guild, person_roles,server_me
         elif contract["trigger"] == "message":
             try:
                 message = context
+                print(inspect.iscoroutinefunction(contract["code"])
+)
                 #print("message is", message)
                 #contract["code"] = contract["code"].replace("send(",f'send({person_roles}, {server_members}, {server_roles}, {person_id}, {guild.id},')
                 #safe_list = ['math','acos', 'asin', 'atan', 'atan2', 'ceil', 'cos', 'cosh', 'de grees', 'e', 'exp', 'fabs', 'floor', 'fmod', 'frexp', 'hypot', 'ldexp', 'log', 'log10', 'modf', 'pi', 'pow', 'radians', 'sin', 'sinh', 'sqrt', 'tan', 'tanh', "message", "context","locals"] 
