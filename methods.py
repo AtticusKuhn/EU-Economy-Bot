@@ -135,6 +135,18 @@ def can_access_wallet(guild, person_id, wallet):
     if(found_wallet[1].id in person_roles):
         #print(3)
         return True
+    guild_collection =db[str(guild.id)]
+    account =guild_collection.find_one({"id":found_wallet[1].id})
+    print(account)
+    if account is not None:
+        print(1)
+        if "permissions" in account:
+            print(2)
+            if "access" in account["permissions"]:
+                print(2)
+                if person_id in account["permissions"]["access"]:
+                    return True
+
     #print(4)
     return False
 

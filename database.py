@@ -29,19 +29,6 @@ logging.basicConfig(level=logging.INFO)
 client = MongoClient(os.environ.get("MONGO_URL"))
 db = client.database
 
-def simple_send(person_id,guild, from_wallet, to_wallet, amount):
-    found = (False, "e")
-    for person in guild.members:
-        if person.id == person_id:
-            found = (True,person)
-            break
-    if not found[0]:
-        return (False, "not found")
-    person_roles= list(map(lambda role: role.id , found[1].roles))
-    server_members = list(map(lambda member:member.id, guild.members))
-    server_roles = list(map(lambda role: role.id, guild.roles))
-    return send(person_roles, server_members, server_roles, person_id, guild.id, from_wallet, to_wallet, amount)
- 
 def send(person_id, guild, from_wallet, to_wallet, amount):
    # #print("send")
     #print("to_wallet is",to_wallet)
@@ -259,10 +246,10 @@ def execute_contracts(array_of_contracts, context, guild, person_roles,server_me
         server_roles = str(server_roles)
         person_id = str(person_id)
         #print(contract["args"],"is contract['args']")
-        contract["code"] = contract["code"].replace("send(",f'send({contract["args"][3]},')
+        contract["code"] = contract["code"].replace("send(",f'send({contract["args"][3]}, message.guild,')
         safe_list = ['math','acos', 'asin', 'atan', 'atan2', 'ceil', 'cos', 'cosh', 'de grees', 'e', 'exp', 'fabs', 'floor', 'fmod', 'frexp', 'hypot', 'ldexp', 'log', 'log10', 'modf', 'pi', 'pow', 'radians', 'sin', 'sinh', 'sqrt', 'tan', 'tanh', "message", "context","locals"] 
         safe_dict = dict([ (k, locals().get(k, None)) for k in safe_list ]) 
-        safe_dict["send"] = simple_send
+        safe_dict["send"] = send
         safe_dict["whois"] = methods.whois
         safe_dict["set_money"] = set_money
         
@@ -284,7 +271,7 @@ def execute_contracts(array_of_contracts, context, guild, person_roles,server_me
             try:
                 message = context
                 print(inspect.iscoroutinefunction(contract["code"])
-)
+    )
                 #print("message is", message)
                 #contract["code"] = contract["code"].replace("send(",f'send({person_roles}, {server_members}, {server_roles}, {person_id}, {guild.id},')
                 #safe_list = ['math','acos', 'asin', 'atan', 'atan2', 'ceil', 'cos', 'cosh', 'de grees', 'e', 'exp', 'fabs', 'floor', 'fmod', 'frexp', 'hypot', 'ldexp', 'log', 'log10', 'modf', 'pi', 'pow', 'radians', 'sin', 'sinh', 'sqrt', 'tan', 'tanh', "message", "context","locals"] 
@@ -427,5 +414,49 @@ def set_money(guild, amount,wallet):
     )
     return (True, f'balance was set to {amount}')
 
-def alter_money(guild, amount, wallet, person):
+def set_settings(guild, person,target, wallet, setting_name, value):
+    if not setting_name in config["wallet_settings"]:
+        return (False, "invalid setting name")
+    value = (value.lower() == "true")
+    found_wallet =methods.get_wallet(guild, wallet)
+    found_target = methods.get_wallet(guild, target)
+    if not found_wallet[0]:
+        return (False, "wallet does not exist")
+    if not found_target[0]:
+        return (False, "target does not exist")
     guild_collection =db[str(guild.id)]
+    account =guild_collection.find_one({"id":found_wallet[1].id})
+    if not account:
+        return (False,"wallet does not have an accound")
+    can_access = False
+    if person.guild_permissions.administrator:
+        can_access = True
+    #if "permissions" in account:
+    #    if "edit_settings" in account["permissions"]:
+    #        if person.id in account["permissions"]["edit_settings"]:
+    #            can_access=True
+    if not can_access:
+        return (False, "you cannot edit the settings of this wallet")
+    temp = account
+
+    print(temp, setting_name)
+
+    if not "permissions" in temp:
+        temp["permissions"] = {}
+    if temp["permissions"] is None:
+        temp["permissions"] = {}
+    if not setting_name in temp["permissions"]:
+        temp["permissions"][setting_name] = []
+    if value:
+        temp["permissions"][setting_name].append(found_target[1].id)
+    else:
+        temp["permissions"][setting_name].remove(found_target[1].id)
+
+    guild_collection.update_one(
+        {"id":found_wallet[1].id},
+        { "$set":{"permissions":temp["permissions"]}}
+    )
+    return (True, "settings successfully changed")
+        
+
+

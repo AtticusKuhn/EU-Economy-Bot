@@ -16,7 +16,8 @@ commands_array = [
    ("$send-each", "any"),
    ("$set-balance", 2),
    ("$alter-balance", 2),
-   ("$set-balance-each", "any")
+   ("$set-balance-each", "any"),
+   ("$wallet-settings", 4)
    ]
 def is_valid_command(user_message):
     user_array = user_message.content.split(" ")

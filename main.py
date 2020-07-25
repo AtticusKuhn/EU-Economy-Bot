@@ -75,6 +75,7 @@ class MyClient(discord.Client):
 - $send-each (from wallet) (ammount) (condition) - send each person who meets a condition
 - $set-balance (ping wallet) - set the balance of a wallet for admins only
 - $set-balance-each (amount) (condition) - set the balance of each person who meets a condition
+- $wallet-settings (target person) (ping wallet) (setting name) (boolean) - change the setting, such as view or access, to allow certain people to do more with wallets
                     '''
                     )
                 if(message_command == "$send"):
@@ -210,6 +211,9 @@ class MyClient(discord.Client):
 
                     embedVar.add_field(name="People", value=return_statement, inline=False)
                     await message.channel.send(embed=embedVar)
+                if message_command == "$wallet-settings":
+                    res= database.set_settings(message.guild, message.author, message_array[1], message_array[2], message_array[3], message_array[4])
+                    await message.channel.send(res[1])
                         
 
             else:
