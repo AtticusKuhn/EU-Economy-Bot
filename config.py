@@ -6,5 +6,5 @@ config = {
     "default_balance": 100,
     "config_options":["default_balance"],
     "day_length":86400,
-    "wallet_settings":[ "access", "edit-settings"]
+    "wallet_settings":[ "access", "edit-settings", "view","print"]
 }

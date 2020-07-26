@@ -144,9 +144,11 @@ def can_access_wallet(guild, person_id, wallet):
             print(2)
             if "access" in account["permissions"]:
                 print(2)
-                if person_id in account["permissions"]["access"]:
+                if person_id in account["permissions"]["access"]["true"]:
                     return True
-
+    for role in member.roles:
+        if role.id in account["permissions"]["access"]["true"]:
+            return True
     #print(4)
     return False
 

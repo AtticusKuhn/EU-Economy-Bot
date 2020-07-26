@@ -133,23 +133,30 @@ def create(guild, wallet_ping, server_members,server_roles, client):
 
 
 
-def get_balance(guild,wallet):
+def get_balance(person, guild,wallet):
     guild_collection =db[str(guild.id)]
     ##(server_members,server_roles,  guild_id, from_wallet)
     get_wallet_result = methods.get_wallet(guild, wallet)
     #print(get_wallet_result)
+       
     if(get_wallet_result[0]):
         found_wallet = guild_collection.find_one({
             "id"     :get_wallet_result[1].id,
         })
         if(found_wallet is None):
             return (False, "cannot find wallet")
+        if "permissions" in found_wallet:
+            if "view" in found_wallet["permissions"]:
+                print(1)
+                if person.id in found_wallet["permissions"]["view"]["false"]:
+                    print(2)
+                    return (False, "you do not have permission to see this wallet")
         return (True, found_wallet)
     else:
         return (False, "doesn't exist")
 
 
-def print_money(guild, wallet, amount):
+def print_money(person,guild, wallet, amount):
     currency=""
     if "-" in amount:
         currency=f'-{amount.split("-")[1]}'
@@ -160,8 +167,27 @@ def print_money(guild, wallet, amount):
         return (False,"invalid amount" )
     
     guild_collection =db[str(guild.id)]
-    ##get_wallet(server_members,server_roles, server_id, ping_wallet)
     wallet_id = methods.get_wallet(guild, wallet)
+
+    can_print = False
+    if person.guild_permissions.administrator:
+        can_print=True
+    account_of_printing =guild_collection.find_one({"id":wallet_id[1].id})
+    if account_of_printing is None:
+        return (False,"can't find doesn't exist")
+    if "permissions" in account_of_printing:
+        if "print" in account_of_printing["permissions"]:
+            if person.id in account_of_printing["permissions"]["print"]["true"]:
+                can_print = True
+        if currency != "":
+            if person.id in account_of_printing["permissions"][f'print{currency}']["true"]:
+                can_print = True
+    if "printer" in person.roles:
+        can_print=True
+    if not can_print:
+        return (False, "you do not have permission to print")
+
+    ##get_wallet(server_members,server_roles, server_id, ping_wallet)
     #print(wallet_id)
     if(wallet_id[0]):
         account = guild_collection.find_one({"id": wallet_id[1].id})
@@ -270,8 +296,7 @@ def execute_contracts(array_of_contracts, context, guild, person_roles,server_me
         elif contract["trigger"] == "message":
             try:
                 message = context
-                print(inspect.iscoroutinefunction(contract["code"])
-    )
+                print(inspect.iscoroutinefunction(contract["code"]))
                 #print("message is", message)
                 #contract["code"] = contract["code"].replace("send(",f'send({person_roles}, {server_members}, {server_roles}, {person_id}, {guild.id},')
                 #safe_list = ['math','acos', 'asin', 'atan', 'atan2', 'ceil', 'cos', 'cosh', 'de grees', 'e', 'exp', 'fabs', 'floor', 'fmod', 'frexp', 'hypot', 'ldexp', 'log', 'log10', 'modf', 'pi', 'pow', 'radians', 'sin', 'sinh', 'sqrt', 'tan', 'tanh', "message", "context","locals"] 
@@ -415,7 +440,7 @@ def set_money(guild, amount,wallet):
     return (True, f'balance was set to {amount}')
 
 def set_settings(guild, person,target, wallet, setting_name, value):
-    if not setting_name in config["wallet_settings"]:
+    if not setting_name in config["wallet_settings"] and not setting_name.startswith("print-"):
         return (False, "invalid setting name")
     value = (value.lower() == "true")
     found_wallet =methods.get_wallet(guild, wallet)
@@ -431,27 +456,43 @@ def set_settings(guild, person,target, wallet, setting_name, value):
     can_access = False
     if person.guild_permissions.administrator:
         can_access = True
-    #if "permissions" in account:
-    #    if "edit_settings" in account["permissions"]:
-    #        if person.id in account["permissions"]["edit_settings"]:
-    #            can_access=True
     if not can_access:
         return (False, "you cannot edit the settings of this wallet")
     temp = account
-
     print(temp, setting_name)
-
     if not "permissions" in temp:
-        temp["permissions"] = {}
+        temp["permissions"] = {
+        }
     if temp["permissions"] is None:
-        temp["permissions"] = {}
+        temp["permissions"] = {
+        }
     if not setting_name in temp["permissions"]:
-        temp["permissions"][setting_name] = []
+        temp["permissions"][setting_name] ={
+            "true":[],
+            "false":[]
+        }
+    if not "true" in temp["permissions"][setting_name]:
+        temp["permissions"][setting_name] ={
+            "true":[],
+            "false":[]
+        }
     if value:
-        temp["permissions"][setting_name].append(found_target[1].id)
-    else:
-        temp["permissions"][setting_name].remove(found_target[1].id)
+        if found_target[1].id in temp["permissions"][setting_name]["true"]:
+            return (False, "setting already true")
+        temp["permissions"][setting_name]["true"].append(found_target[1].id)
+        try:
+            temp["permissions"][setting_name]["false"].remove(found_target[1].id)
+        except:
+            pass
 
+    else:
+        if found_target[1].id in temp["permissions"][setting_name]["false"]:
+            return (False, "setting already false")
+        temp["permissions"][setting_name]["false"].append(found_target[1].id)
+        try:
+            temp["permissions"][setting_name]["true"].remove(found_target[1].id)
+        except:
+            pass
     guild_collection.update_one(
         {"id":found_wallet[1].id},
         { "$set":{"permissions":temp["permissions"]}}
