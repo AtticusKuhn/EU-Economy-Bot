@@ -179,9 +179,16 @@ def print_money(person,guild, wallet, amount):
         if "print" in account_of_printing["permissions"]:
             if person.id in account_of_printing["permissions"]["print"]["true"]:
                 can_print = True
+            for role in person.roles:
+                if role.id in account_of_printing["permissions"]["print"]["true"]:
+                    can_print = True
         if currency != "":
-            if person.id in account_of_printing["permissions"][f'print{currency}']["true"]:
-                can_print = True
+            if f'print{currency}' in account_of_printing["permissions"]:
+                if person.id in account_of_printing["permissions"][f'print{currency}']["true"]:
+                    can_print = True
+                for role in person.roles:
+                    if role.id in account_of_printing["permissions"][f'print{currency}']["true"]:
+                        can_print = True
     if "printer" in person.roles:
         can_print=True
     if not can_print:
