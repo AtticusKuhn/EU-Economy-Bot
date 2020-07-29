@@ -117,14 +117,14 @@ def create(guild, wallet_ping, server_members,server_roles, client):
                 "name"   :found_person.name,
                 "id"     :found_person.id,
                 "type"   :"personal",
-                "balance": default_balance
+                "balance": int(default_balance)
              })
         else:
             guild_collection.insert_one({
                 "name"   :found_role.name,
                 "id"     :found_role.id,
                 "type"   :"role",
-                "balance": default_balance
+                "balance": int(default_balance)
              })
         return (True, "created")
     else:
@@ -140,9 +140,7 @@ def get_balance(person, guild,wallet):
     #print(get_wallet_result)
        
     if(get_wallet_result[0]):
-        found_wallet = guild_collection.find_one({
-            "id"     :get_wallet_result[1].id,
-        })
+        found_wallet = guild_collection.find_one({"id":get_wallet_result[1].id})
         if(found_wallet is None):
             return (False, "cannot find wallet")
         if "permissions" in found_wallet:
@@ -161,6 +159,9 @@ def print_money(person,guild, wallet, amount):
     if "-" in amount:
         currency=f'-{amount.split("-")[1]}'
         amount =amount.split("-")[0]
+
+        if not methods.valid_item(currency[1:]):
+            return (False, "invalid item name")
     try:
         amount = int(amount)
     except:
@@ -366,6 +367,9 @@ def set_config(guild, setting_name, option):
             "default_balance": config["default_balance"]
         })
 #print(setting_name)
+    if setting_name == "default_balance" and not option.isdigit():
+        return (False, "must be a number")
+    
     if setting_name not in config["config_options"]:
         return "can't find that setting"
     guild_collection.update_one({
@@ -505,6 +509,136 @@ def set_settings(guild, person,target, wallet, setting_name, value):
         { "$set":{"permissions":temp["permissions"]}}
     )
     return (True, "settings successfully changed")
-        
+
+def  insert_trade(message, person, guild,wallet, offer,cost, options):
+    found_wallet=methods.get_wallet(guild,wallet)
+    if not found_wallet[0]:
+        return (False, "bad wallet")
+    if not methods.can_access_wallet(guild, person.id, wallet):
+        return (False,"bad wallet 2")
+    offer_currency=""
+    offer_amount = offer
+    if "-" in offer:
+        offer_currency=f'-{offer.split("-")[1]}'
+        offer_amount =offer.split("-")[0]
+        if not methods.valid_item(offer_currency[1:]):
+            return (False, "invalid item name")
+    cost_currency=""
+    cost_amount = cost
+    if "-" in cost:
+        cost_currency=f'-{cost.split("-")[1]}'
+        cost_amount =cost.split("-")[0]
+        if not methods.valid_item(cost_currency[1:]):
+            return (False, "invalid item name")
+    #offer_amount = offer.split("-")[0]
+    #offer_currency = offer.split("-")[1]
+    #cost_amount = cost.split("-")[0]
+    #cost_currency = cost.split("-")[1]
+    print(offer_amount,cost_amount)
+    if not offer_amount.isdigit() or not cost_amount.isdigit():
+        return (False, "invalid amount")
+    offer_amount=int(offer_amount)
+    cost_amount=int(cost_amount)
+    for index, option in enumerate(options):
+        if "use" in option:
+            if not option.split("use")[0].isdigit():
+                return (False, "invalid uses")
+            uses = option.split("use")[0]
+        if "time" in option:
+            if not option.split("time")[0].isdigit():
+                return (False, "invalid time")
+            offer_time = int(option.split("time")[0]) +time.time()
+        if option=="whois":
+            people_restrictions = options[index:]
+    guild_collection =db[str(guild.id)]
+    offer_schema = {
+        "type":"trade",
+        "person":person.id,
+        "message_id":message.id,
+        "wallet":found_wallet[1].id,
+        "offer_currency":offer_currency,
+        "offer_amount":int(offer_amount),
+        "cost_currency":cost_currency,
+        "cost_amount":int(cost_amount)
+    }
+    if "uses" in locals():
+        offer_schema["uses"]=int(uses)
+    if "offer_time" in locals():
+        offer_schema["offer_time"]=int(offer_time)
+    if "people_restrictions" in locals():
+        offer_schema["people_restrictions"] = people_restrictions
+    guild_collection.insert_one(offer_schema)
+    return (True, f'succesful. In order to accept this trade, type "$accept {message.id} (ping wallet)", or you may react to the original message with ✅, in which case the money will be deducted from your personal account.')
+
+
+def fulfill_trade(message,wallet, person, guild):
+    found_wallet = methods.get_wallet(guild, wallet)
+    if not found_wallet[0]:
+        return (False,"cant find wallet")
+    if not methods.can_access_wallet(guild, person.id, wallet):
+        return (False, "cannot access wallet")
+    try:
+       message=int(message)
+    except:
+        return (False,"invalid number")
+    guild_collection =db[str(guild.id)]
+    found_offer=guild_collection.find_one({
+        "type":"trade",
+        "message_id"  :message
+    })
+    if found_offer is None:
+        return (False, "can't find offer")
+    if "uses" in found_offer:
+        if found_offer["uses"] <=0:
+            guild_collection.delete_one({"message_id":found_offer["message_id"]})
+            return (False,"offer has been used up")
+    if "offer_time" in found_offer:
+        if time.time() > found_offer["offer_time"]:
+            guild_collection.delete_one({"message_id":found_offer["message_id"]})
+            return (False,"offer has run out of time")
+    if "people_restrictions" in found_offer:
+        if person.id not in methods.whois(found_offer["people_restrictions"],guild):
+            return (False, "you cannot accept this offer because a restriction has bee")
+    receiver = guild_collection.find_one({"id":found_wallet[1].id})
+    if receiver is None:
+        return (False,"you don't have an account")
+    if f'balance{found_offer["cost_currency"]}' not in receiver:
+        return (False, "you have no money")
+    if receiver[f'balance{found_offer["cost_currency"]}'] < found_offer["cost_amount"]:
+        return (False,"you don't have enough money")
+    sender =  guild_collection.find_one({"id":found_offer["person"]})
+    if f'balance{found_offer["offer_currency"]}' not in sender:
+        guild_collection.delete_one({"message_id":found_offer["message_id"]})
+        return (False, "offer deleted, person does not have enough for trade")
+    if sender[f'balance{found_offer["offer_currency"]}'] < found_offer["offer_amount"]:
+        guild_collection.delete_one({"message_id":found_offer["message_id"]})
+        return (False, "offer deleted, person does not have enough for trade")
+    guild_collection.update_one(
+        {"id":  receiver["id"] },
+        { "$inc":{f'balance{found_offer["offer_currency"]}':-int(found_offer["offer_amount"])} }
+    )
+    guild_collection.update_one(
+        {"id":  receiver["id"] },
+        { "$inc":{f'balance{found_offer["cost_currency"]}':int(found_offer["cost_amount"])} }
+    )
+    guild_collection.update_one(
+        {"id":  sender["id"] },
+        { "$inc":{f'balance{found_offer["offer_currency"]}':int(found_offer["offer_amount"])} }
+    )
+    guild_collection.update_one(
+        {"id":  sender["id"] },
+        { "$inc":{f'balance{found_offer["cost_currency"]}':-int(found_offer["cost_amount"])} }
+    )
+    if "uses" in found_offer:
+        guild_collection.update_one(
+            {"message_id":  found_offer["message_id"] },
+            { "$inc":{"uses":-1} }
+        )
+    return (True,"success")
+
+    
+
+
+
 
 

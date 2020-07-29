@@ -76,6 +76,8 @@ class MyClient(discord.Client):
 - $set-balance (ping wallet) - set the balance of a wallet for admins only
 - $set-balance-each (amount) (condition) - set the balance of each person who meets a condition
 - $wallet-settings (target person) (ping wallet) (setting name) (boolean) - change the setting, such as view or access, to allow certain people to do more with wallets
+- $trade (wallet) (wanted currency) (giving up currency) (optional limitations) - create a trade
+- $accept (message id of trade) (wallet) - accept a trade
                     '''
                     )
                 if(message_command == "$send"):
@@ -210,10 +212,25 @@ class MyClient(discord.Client):
                 if message_command == "$wallet-settings":
                     res= database.set_settings(message.guild, message.author, message_array[1], message_array[2], message_array[3], message_array[4])
                     await message.channel.send(res[1])
-                        
+                if message_command == "$trade":
+                    res = database.insert_trade(message, message.author,message.guild,message_array[1], message_array[2],message_array[3], message_array[4:])
+                    await message.channel.send(res[1])
+                    if res[0]:
+                        await message.add_reaction("✅")
+                if message_command == "$accept":
+                    res= database.fulfill_trade(message_array[1], message_array[2], message.author, message.guild)
+                    await message.channel.send(res[1])
+  
 
             else:
                 await message.channel.send("not valid command. If you want a list of all commands, type '$help' ")
+    async def on_reaction_add(self,reaction, user):
+        if reaction.emoji != "✅":
+            return
+        if user.bot:
+            return
+        res= database.fulfill_trade(reaction.message.id, user.mention,  user, reaction.message.guild)
+        await reaction.message.channel.send(res[1])
 
 
 client = MyClient()

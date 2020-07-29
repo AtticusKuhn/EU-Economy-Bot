@@ -139,16 +139,17 @@ def can_access_wallet(guild, person_id, wallet):
     account =guild_collection.find_one({"id":found_wallet[1].id})
     print(account)
     if account is not None:
-        print(1)
         if "permissions" in account:
-            print(2)
             if "access" in account["permissions"]:
-                print(2)
                 if person_id in account["permissions"]["access"]["true"]:
                     return True
+                if person_id in account["permissions"]["access"]["false"]:
+                    return False
     for role in member.roles:
-        if role.id in account["permissions"]["access"]["true"]:
-            return True
+        if "permissions" in account:
+            if "access" in account["permissions"]:
+                if role.id in account["permissions"]["access"]["true"]:
+                    return True
     #print(4)
     return False
 
@@ -318,10 +319,6 @@ def whois(message_array, guild):
                 if value and perm == word:
                     people.add(person.id)
         for person in guild.members:
-            print(
-                "name is",person.name,
-                "word is", word
-            )
             if person.name == word or str(person.id) == word:
                 people.add(person.id)
                 #continue
