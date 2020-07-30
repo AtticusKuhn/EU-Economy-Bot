@@ -66,4 +66,4 @@ You can see which people satisfy a condition with whois.
 
 # Invite link
 
-You can invite this bot to any server with the link https://discord.com/oauth2/authorize?scope=bot&client_id=716434826151854111
+You can invite this bot to any server with the link https://discord.com/oauth2/authorize?scope=bot&client_id=716434826151854111&permissions=3072
