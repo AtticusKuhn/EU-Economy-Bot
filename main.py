@@ -12,9 +12,9 @@ import database
 import methods
 import commands
 from config import config
-import server
+from server import start_server
 
-server.keep_alive()
+#server.keep_alive()
 #log = logging.getLogger('werkzeug')
 #log.setLevel(logging.ERROR)
 
@@ -22,10 +22,13 @@ server.keep_alive()
 
 class MyClient(discord.Client):
     async def on_ready(self):
+        start_server(self)
         print('Logged in as')
         print(self.user.name)
         print(self.user.id)
         print('------')
+        await self.change_presence(activity=discord.Game(name=f'type $help for all commands|Currently in {len(self.guilds)} guilds'))
+
         
 
         for guild in self.guilds:
@@ -34,6 +37,9 @@ class MyClient(discord.Client):
     #async def on_error(self,error, thing):
      #   print("there was an error")
     async def on_message(self, message):
+        if message.guild is None:
+            await message.author.send("I can only respond to messages in guilds")
+            return
         message.content = message.content.replace("  "," ")
         person_roles= list(map(lambda role: role.id , message.author.roles))
         server_members = list(map(lambda member:member.id, message.guild.members))
@@ -119,7 +125,7 @@ class MyClient(discord.Client):
                     database.clear_contracts(message.guild, message.author.id)
                     await message.channel.send("your contracts were all deleted")
                 if(message_command == "$links"):
-                    await message.channel.send("Github - https://github.com/eulerthedestroyer/EU-Economy-Bot \n Discord link - https://discord.gg/SxE4wC \n Bot link - https://discord.com/oauth2/authorize?scope=bot&client_id=716434826151854111 \n Web interface - https://discord-oauth2-example.atticuskuhn.repl.co")
+                    await message.channel.send("Github - https://github.com/eulerthedestroyer/EU-Economy-Bot \n Discord link -  https://discord.gg/ghFs7ZM \n Bot link -  https://discord.com/oauth2/authorize?scope=bot&client_id=716434826151854111&permissions=3072 \n Web interface - https://economy-bot.atticuskuhn.repl.co")
                 if(message_command == "$config"):
                     if message.author.guild_permissions.administrator:
                         await message.channel.send(database.set_config(message.guild ,message_array[1], message_array[2]))
