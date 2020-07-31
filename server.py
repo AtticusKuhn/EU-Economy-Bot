@@ -18,7 +18,7 @@ log.setLevel(logging.ERROR)
 from pymongo import MongoClient
 client = MongoClient(os.environ.get("MONGO_URL"))
 db = client.database
-def start_server(bot):
+def run(bot):
     @app.route('/')
     def hello_world():
         return 'Hello World!'
@@ -47,8 +47,8 @@ def start_server(bot):
 
 #if __name__ == '__main__':
  # 
-def run():
-    app.run(host="0.0.0.0", port=8080)
-def keep_alive():
-    server = Thread(target=run)
+#def run():
+#    app.run(host="0.0.0.0", port=8080)
+def start_server(bot):
+    server = Thread(target=run,args=(bot,) )
     server.start()
