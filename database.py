@@ -13,15 +13,18 @@
 #}
 #import PyMongo
 import os
+import re
 from pymongo import MongoClient
-import pprint
+#import pprint
 import methods
 from config import config
 from subprocess import check_output
 import time
 import math
 import logging
-import inspect
+#import inspect
+import asyncio
+import discord
 logging.basicConfig(level=logging.INFO)
 #import evaler
 #import dnspython 
@@ -53,26 +56,33 @@ def send(person_id, guild, from_wallet, to_wallet, amount):
     if(from_wallet_id[0] and to_wallet_id[0]):
         sender_account = guild_collection.find_one({"id": from_wallet_id[1].id})
         reciever_account = guild_collection.find_one({"id": to_wallet_id[1].id})
-        if(sender_account is not None):
-            if(reciever_account is not None):
-                if f'balance{currency}' not in sender_account:
-                    return (False, "you do not have this currency")
-                if percent:
-                    amount = math.floor(sender_account[f'balance{currency}']*(amount/100))
-                if(sender_account[f'balance{currency}'] > amount):
-                    guild_collection.update_one(
-                        {"id":  sender_account["id"] },
-                        { "$inc":{f'balance{currency}':-amount} }
-                    )
-                    guild_collection.update_one(
-                        {"id":  reciever_account["id"] },
-                        { "$inc":{f'balance{currency}':amount} }
-                    )
-                    return (True, f'transfer successful. you send {amount}, making your balance '+ str(sender_account[f'balance{currency}'])+f' {currency}')
-                else:
-                    return (False, "insufficent funds")
-            else:
-                return (False, "reciever account not found")   
+        if(sender_account is None):
+            c_result = create(guild, from_wallet)
+            if not c_result[0]:
+                return (False,c_result[1] )
+            sender_account=c_result[2]  
+        if(reciever_account is None):
+            c_result = create(guild, to_wallet)
+            if not c_result[0]:
+                return (False,c_result[1] )
+            reciever_account=c_result[2]
+
+        if f'balance{currency}' not in sender_account:
+            return (False, "you do not have this currency")
+        if percent:
+            amount = math.floor(sender_account[f'balance{currency}']*(amount/100))
+        if(sender_account[f'balance{currency}'] > amount):
+            guild_collection.update_one(
+                {"id":  sender_account["id"] },
+                { "$inc":{f'balance{currency}':-amount} }
+            )
+            guild_collection.update_one(
+                {"id":  reciever_account["id"] },
+                { "$inc":{f'balance{currency}':amount} }
+            )
+            log_money(guild,"ee")
+            return (True, f'transfer successful. you send {amount}, making your balance '+ str(sender_account[f'balance{currency}'])+f' {currency}')
+                
         else:
            return (False, "sender account not found") 
     else:
@@ -81,7 +91,7 @@ def send(person_id, guild, from_wallet, to_wallet, amount):
 
     pass
 
-def create(guild, wallet_ping, server_members,server_roles, client):
+def create(guild, wallet_ping):
     guild_collection =db[str(guild.id)]
     get_wallet_result = methods.get_wallet( guild, wallet_ping)
     
@@ -103,7 +113,7 @@ def create(guild, wallet_ping, server_members,server_roles, client):
         if guild_collection.find_one({ "id":get_wallet_result[1].id}):
             return (False, "account already exists")
         name = ""
-        for person in client.users:
+        for person in guild.members:
             if(person.id == get_wallet_result[1].id):
                 found_person = person
        # for guild_obj in client.guilds:
@@ -113,20 +123,22 @@ def create(guild, wallet_ping, server_members,server_roles, client):
             if(role.id == get_wallet_result[1].id):
                 found_role = role
         if(get_wallet_result[2] == "person"):
-            guild_collection.insert_one({
+            return_wallet = guild_collection.insert_one({
                 "name"   :found_person.name,
                 "id"     :found_person.id,
                 "type"   :"personal",
                 "balance": int(default_balance)
              })
+            return_wallet = guild_collection.find_one({"id":return_wallet.inserted_id})
         else:
-            guild_collection.insert_one({
+            return_wallet = guild_collection.insert_one({
                 "name"   :found_role.name,
                 "id"     :found_role.id,
                 "type"   :"role",
                 "balance": int(default_balance)
              })
-        return (True, "created")
+            return_wallet = guild_collection.find_one({"_id":return_wallet.inserted_id})
+        return (True, "created",return_wallet)
     else:
         return (False, "doesn't exist")
 
@@ -142,7 +154,7 @@ def get_balance(person, guild,wallet):
     if(get_wallet_result[0]):
         found_wallet = guild_collection.find_one({"id":get_wallet_result[1].id})
         if(found_wallet is None):
-            return (False, "cannot find wallet")
+            found_wallet = create(guild, wallet)[2]
         if "permissions" in found_wallet:
             if "view" in found_wallet["permissions"]:
                 print(1)
@@ -169,13 +181,18 @@ def print_money(person,guild, wallet, amount):
     
     guild_collection =db[str(guild.id)]
     wallet_id = methods.get_wallet(guild, wallet)
-
+    if not wallet_id[0]:
+        return (False,"invalid wallet name")
     can_print = False
     if person.guild_permissions.administrator:
         can_print=True
     account_of_printing =guild_collection.find_one({"id":wallet_id[1].id})
     if account_of_printing is None:
-        return (False,"can't find doesn't exist")
+        c_result = create(guild, wallet)
+        if not c_result[0]:
+            return (False,c_result[1] )
+        account_of_printing=c_result[2]
+        #return (False,"can't find doesn't exist")
     if "permissions" in account_of_printing:
         if "print" in account_of_printing["permissions"]:
             if person.id in account_of_printing["permissions"]["print"]["true"]:
@@ -194,21 +211,21 @@ def print_money(person,guild, wallet, amount):
         can_print=True
     if not can_print:
         return (False, "you do not have permission to print")
-
+    guild_collection.update_one(
+        {"id":  account["id"] },
+        { "$inc":{f'balance{currency}':amount} }
+    )
+    return (True, "transfer successful")
     ##get_wallet(server_members,server_roles, server_id, ping_wallet)
     #print(wallet_id)
-    if(wallet_id[0]):
-        account = guild_collection.find_one({"id": wallet_id[1].id})
-        if(account is not None):
-                guild_collection.update_one(
-                    {"id":  account["id"] },
-                    { "$inc":{f'balance{currency}':amount} }
-                )
-                return (True, "transfer successful")
-        else:
-           return (False, "sender account not found") 
-    else:
-        return (False, "cannot find wallet")
+    #if(wallet_id[0]):
+        #account = guild_collection.find_one({"id": wallet_id[1].id})
+        #if(account is not None):
+        
+        #else:
+        #   return (False, "sender account not found") 
+    #else:
+     #   return (False, "cannot find wallet")
 
 def write_contract(guild,person,contract, trigger, discord_client, *arg ):
     #print(trigger, config["triggers"])
@@ -304,7 +321,7 @@ def execute_contracts(array_of_contracts, context, guild, person_roles,server_me
         elif contract["trigger"] == "message":
             try:
                 message = context
-                print(inspect.iscoroutinefunction(contract["code"]))
+                #print(inspect.iscoroutinefunction(contract["code"]))
                 #print("message is", message)
                 #contract["code"] = contract["code"].replace("send(",f'send({person_roles}, {server_members}, {server_roles}, {person_id}, {guild.id},')
                 #safe_list = ['math','acos', 'asin', 'atan', 'atan2', 'ceil', 'cos', 'cosh', 'de grees', 'e', 'exp', 'fabs', 'floor', 'fmod', 'frexp', 'hypot', 'ldexp', 'log', 'log10', 'modf', 'pi', 'pow', 'radians', 'sin', 'sinh', 'sqrt', 'tan', 'tanh', "message", "context","locals"] 
@@ -372,6 +389,13 @@ def set_config(guild, setting_name, option):
     
     if setting_name not in config["config_options"]:
         return "can't find that setting"
+    if setting_name == "log-channel":
+        match = re.match(r'<#\d{18}>', option)
+        print(match)
+        if match is None:
+            return (False, "invalid channel")
+        option = re.findall(r'\d{18}', option)[0]
+        print(option)
     guild_collection.update_one({
     '_id': server_config['_id']
     },{
@@ -379,7 +403,7 @@ def set_config(guild, setting_name, option):
         setting_name :option
         }
     })
-    return server_config
+    return (True, "success")
 
 
 def  record_balances(guild,client):
@@ -601,7 +625,10 @@ def fulfill_trade(message,wallet, person, guild):
             return (False, "you cannot accept this offer because a restriction has bee")
     receiver = guild_collection.find_one({"id":found_wallet[1].id})
     if receiver is None:
-        return (False,"you don't have an account")
+        c_result = create(guild, wallet)
+        if not c_result[0]:
+            return (False,c_result[1] )
+        receiver=c_result[2]
     if f'balance{found_offer["cost_currency"]}' not in receiver:
         return (False, "you have no money")
     if receiver[f'balance{found_offer["cost_currency"]}'] < found_offer["cost_amount"]:
@@ -636,9 +663,28 @@ def fulfill_trade(message,wallet, person, guild):
         )
     return (True,"success")
 
-    
+def log_money(guild, message):
+    print("log_money called")
+    guild_collection = db[str(guild.id)]
+    server_config =  guild_collection.find_one({
+        "type":"server",
+        "id"  : guild.id
+    })
+    if server_config is None:
+        return
+    print("config is not none")
+    if "log-channel" not in server_config:
+        return
+    print("log-channel exists and it is", server_config["log-channel"])
+    channel = discord.utils.find(lambda m: str(m.id) == str(server_config["log-channel"]), guild.channels)
+    if channel is None:
+        return
+    print("found channel")
+    loop = asyncio.get_event_loop()
+    loop.create_task(channel.send(message))
 
 
+ 
 
 
 
