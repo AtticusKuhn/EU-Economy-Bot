@@ -25,6 +25,7 @@ import logging
 #import inspect
 import asyncio
 import discord
+from quiz import subject_to_quiz
 logging.basicConfig(level=logging.INFO)
 #import evaler
 #import dnspython 
@@ -80,11 +81,11 @@ def send(person_id, guild, from_wallet, to_wallet, amount):
                 {"id":  reciever_account["id"] },
                 { "$inc":{f'balance{currency}':amount} }
             )
-            log_money(guild,"ee")
+            log_money(guild,f'<@{person_id}> sent {amount} from {from_wallet} to {to_wallet}')
             return (True, f'transfer successful. you send {amount}, making your balance '+ str(sender_account[f'balance{currency}'])+f' {currency}')
                 
         else:
-           return (False, "sender account not found") 
+           return (False, f'insuffiecent funds for transfer.') 
     else:
         return (False, "cannot find wallet")
 
@@ -212,7 +213,7 @@ def print_money(person,guild, wallet, amount):
     if not can_print:
         return (False, "you do not have permission to print")
     guild_collection.update_one(
-        {"id":  account["id"] },
+        {"id":  account_of_printing["id"] },
         { "$inc":{f'balance{currency}':amount} }
     )
     return (True, "transfer successful")
@@ -680,11 +681,48 @@ def log_money(guild, message):
     if channel is None:
         return
     print("found channel")
-    loop = asyncio.get_event_loop()
-    loop.create_task(channel.send(message))
+    #asyncio.run(channel.send(f'log: {message}'))
+    try:
+        loop = asyncio.get_event_loop()
+    except:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+    loop.create_task(channel.send(f'log: {message}'))
 
-
- 
-
-
+def get_question(person, guild):
+    guild_collection=db[str(guild.id)]
+    server_config =  guild_collection.find_one({
+        "type":"server",
+        "id"  : guild.id
+    })
+    if server_config is None:
+        return (False, "server config is not set up. Ask your admin to set up the config")
+    if "quiz-subject" not in server_config:
+        return (False, "there is no quiz-subject set for the quiz. Ask your admin to set up a quiz-subject in the config")
+    try:
+        question = subject_to_quiz(server_config["quiz-subject"])
+    except:
+        return (False, "error")
+    guild_collection.insert_one({
+        "type":"quiz",
+        "person":person.id,
+        "question":question,
+        "time":time.time()
+    })
+    return (True, question)
+def answer_question(person, answer, guild):
+    guild_collection=db[str(guild.id)]
+    question = guild_collection.find_one({"type":"quiz","person":person.id})
+    if question is None:
+        return None
+    guild_collection.delete_one({"type":"quiz","person":person.id})
+    if time.time() - question["time"] >10000:
+        return (False, "you ran out of time sorry")
+    if question["question"]["answer"] != answer:
+        return (False,f'incorrect answer, correct answer is {question["question"]["answer"]}')
+    guild_collection.update_one(
+        {"id":  person.id },
+        { "$inc":{f'balance':1} }
+    )
+    return (True, "your balance has been increased by one")
 

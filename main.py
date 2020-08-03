@@ -57,7 +57,9 @@ class MyClient(discord.Client):
                         await message.channel.send(f'<@!{i[2]}> your smart contract was annuled: {i[1]}')
                     else:
                         await message.channel.send(f'a smart contract said: {i[1]}')
-            
+        answer = answer_question(message.author, message.content, message.guild)
+        if answer is not None:
+            await message.channel.send(answer[1])
         if(message.content.startswith("$")):
             if(message.content.startswith("$smart-contract")):
                 if(message.content.count("```") == 2):
@@ -226,10 +228,12 @@ class MyClient(discord.Client):
                 if message_command == "$accept":
                     res= database.fulfill_trade(message_array[1], message_array[2], message.author, message.guild)
                     await message.channel.send(res[1])
-  
+                if message_command=="$quiz":
+                   await message.channel.send(get_question(message.author, message.guild))[1]
 
             else:
                 await message.channel.send("not valid command. If you want a list of all commands, type '$help' ")
+            
     async def on_reaction_add(self,reaction, user):
         if reaction.emoji != "✅":
             return
