@@ -128,7 +128,7 @@ class MyClient(discord.Client):
                     database.clear_contracts(message.guild, message.author.id)
                     await message.channel.send("your contracts were all deleted")
                 if(message_command == "$links"):
-                    await message.channel.send("Github - https://github.com/eulerthedestroyer/EU-Economy-Bot \n Discord link -  https://discord.gg/ghFs7ZM \n Bot link -  https://discord.com/oauth2/authorize?scope=bot&client_id=716434826151854111&permissions=3072 \n Web interface - https://economy-bot.atticuskuhn.repl.co")
+                    await message.channel.send("Github - https://github.com/eulerthedestroyer/EU-Economy-Bot \n Discord link -  https://discord.gg/ghFs7ZM \n Bot link - https://discord.com/api/oauth2/authorize?client_id=716434826151854111&permissions=268503104m&scope=bot \n Web interface - https://economy-bot.atticuskuhn.repl.co")
                 if(message_command == "$config"):
                     if message.author.guild_permissions.administrator:
                         await message.channel.send(database.set_config(message.guild ,message_array[1], message_array[2]))
