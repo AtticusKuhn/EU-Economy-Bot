@@ -536,11 +536,13 @@ def set_settings(guild, person,target, wallet, setting_name, value):
     return (True, "settings successfully changed")
 
 def  insert_trade(message, person, guild,wallet, offer,cost, options):
-    found_wallet=methods.get_wallet(guild,wallet)
-    if not found_wallet[0]:
-        return (False, "bad wallet")
-    if not methods.can_access_wallet(guild, person.id, wallet):
-        return (False,"bad wallet 2")
+    if wallet !="admins":
+        found_wallet=methods.get_wallet(guild,wallet)
+        if not found_wallet[0]:
+            return (False, "bad wallet")
+        if not methods.can_access_wallet(guild, person.id, wallet):
+            return (False,"bad wallet 2")
+
     offer_currency=""
     offer_amount = offer
     if "-" in offer:
@@ -555,6 +557,9 @@ def  insert_trade(message, person, guild,wallet, offer,cost, options):
         cost_amount =cost.split("-")[0]
         if not methods.valid_item(cost_currency[1:]):
             return (False, "invalid item name")
+    if re.match(r'<@&?\d{18}>', offer) is not None:
+        offer_currency = offer
+        offer_amount="1"
     #offer_amount = offer.split("-")[0]
     #offer_currency = offer.split("-")[1]
     #cost_amount = cost.split("-")[0]
@@ -580,12 +585,13 @@ def  insert_trade(message, person, guild,wallet, offer,cost, options):
         "type":"trade",
         "person":person.id,
         "message_id":message.id,
-        "wallet":found_wallet[1].id,
         "offer_currency":offer_currency,
         "offer_amount":int(offer_amount),
         "cost_currency":cost_currency,
         "cost_amount":int(cost_amount)
     }
+    if "found_wallet" in locals():
+        offer_schema["wallet"] = found_wallet[1].id
     if "uses" in locals():
         offer_schema["uses"]=int(uses)
     if "offer_time" in locals():
@@ -635,12 +641,13 @@ def fulfill_trade(message,wallet, person, guild):
     if receiver[f'balance{found_offer["cost_currency"]}'] < found_offer["cost_amount"]:
         return (False,"you don't have enough money")
     sender =  guild_collection.find_one({"id":found_offer["person"]})
-    if f'balance{found_offer["offer_currency"]}' not in sender:
-        guild_collection.delete_one({"message_id":found_offer["message_id"]})
-        return (False, "offer deleted, person does not have enough for trade")
-    if sender[f'balance{found_offer["offer_currency"]}'] < found_offer["offer_amount"]:
-        guild_collection.delete_one({"message_id":found_offer["message_id"]})
-        return (False, "offer deleted, person does not have enough for trade")
+    if "wallet" in found_offer:
+        if f'balance{found_offer["offer_currency"]}' not in sender:
+            guild_collection.delete_one({"message_id":found_offer["message_id"]})
+            return (False, "offer deleted, person does not have enough for trade")
+        if sender[f'balance{found_offer["offer_currency"]}'] < found_offer["offer_amount"]:
+            guild_collection.delete_one({"message_id":found_offer["message_id"]})
+            return (False, "offer deleted, person does not have enough for trade")
     guild_collection.update_one(
         {"id":  receiver["id"] },
         { "$inc":{f'balance{found_offer["offer_currency"]}':-int(found_offer["offer_amount"])} }
@@ -649,14 +656,26 @@ def fulfill_trade(message,wallet, person, guild):
         {"id":  receiver["id"] },
         { "$inc":{f'balance{found_offer["cost_currency"]}':int(found_offer["cost_amount"])} }
     )
-    guild_collection.update_one(
-        {"id":  sender["id"] },
-        { "$inc":{f'balance{found_offer["offer_currency"]}':int(found_offer["offer_amount"])} }
-    )
-    guild_collection.update_one(
-        {"id":  sender["id"] },
-        { "$inc":{f'balance{found_offer["cost_currency"]}':-int(found_offer["cost_amount"])} }
-    )
+    if" wallet" in  found_offer:
+        guild_collection.update_one(
+            {"id":  sender["id"] },
+            { "$inc":{f'balance{found_offer["offer_currency"]}':int(found_offer["offer_amount"])} }
+        )
+        guild_collection.update_one(
+            {"id":  sender["id"] },
+            { "$inc":{f'balance{found_offer["cost_currency"]}':-int(found_offer["cost_amount"])} }
+        )
+    if re.match(r'<@&?\d{18}>', found_offer["offer_currency"]) is not None:
+        try:
+            loop = asyncio.get_event_loop()
+            id_role= re.findall(r'\d{18}', found_offer["offer_currency"])[0]
+            print(id_role)
+            id_role=int(id_role)
+            role = discord.utils.get(guild.roles, id=id_role)
+            print(role)
+            loop.create_task(person.add_roles(role))
+        except:
+            return (False,"bad permissions")
     if "uses" in found_offer:
         guild_collection.update_one(
             {"message_id":  found_offer["message_id"] },
@@ -699,17 +718,19 @@ def get_question(person, guild):
         return (False, "server config is not set up. Ask your admin to set up the config")
     if "quiz-subject" not in server_config:
         return (False, "there is no quiz-subject set for the quiz. Ask your admin to set up a quiz-subject in the config")
-    try:
-        question = subject_to_quiz(server_config["quiz-subject"])
-    except:
-        return (False, "error")
+    #try:
+    question = subject_to_quiz(server_config["quiz-subject"])
+    print(question,"question")
+
+    #except:
+    #    return (False, "error")
     guild_collection.insert_one({
         "type":"quiz",
         "person":person.id,
         "question":question,
         "time":time.time()
     })
-    return (True, question)
+    return (True, question["question"])
 def answer_question(person, answer, guild):
     guild_collection=db[str(guild.id)]
     question = guild_collection.find_one({"type":"quiz","person":person.id})
@@ -718,11 +739,14 @@ def answer_question(person, answer, guild):
     guild_collection.delete_one({"type":"quiz","person":person.id})
     if time.time() - question["time"] >10000:
         return (False, "you ran out of time sorry")
-    if question["question"]["answer"] != answer:
-        return (False,f'incorrect answer, correct answer is {question["question"]["answer"]}')
+    if question["question"] is not None:
+        if "answer" in  question["question"]:
+            if question["question"]["answer"] != answer and answer not in question["question"]["similar_words"]:
+                return (False,f'incorrect answer, correct answer is {question["question"]["answer"]}')
     guild_collection.update_one(
         {"id":  person.id },
         { "$inc":{f'balance':1} }
     )
+    if answer in question["question"]["similar_words"]:
+        return (True, f'the correct answer was {question["question"]["answer"]}, but that was close enough to be correct.')
     return (True, "your balance has been increased by one")
-

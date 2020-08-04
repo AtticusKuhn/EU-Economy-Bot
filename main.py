@@ -57,7 +57,7 @@ class MyClient(discord.Client):
                         await message.channel.send(f'<@!{i[2]}> your smart contract was annuled: {i[1]}')
                     else:
                         await message.channel.send(f'a smart contract said: {i[1]}')
-        answer = answer_question(message.author, message.content, message.guild)
+        answer = database.answer_question(message.author, message.content, message.guild)
         if answer is not None:
             await message.channel.send(answer[1])
         if(message.content.startswith("$")):
@@ -86,6 +86,7 @@ class MyClient(discord.Client):
 - $wallet-settings (target person) (ping wallet) (setting name) (boolean) - change the setting, such as view or access, to allow certain people to do more with wallets
 - $trade (wallet) (wanted currency) (giving up currency) (optional limitations) - create a trade
 - $accept (message id of trade) (wallet) - accept a trade
+- $quiz - start a quiz based on a subject
                     '''
                     )
                 if(message_command == "$send"):
@@ -229,7 +230,15 @@ class MyClient(discord.Client):
                     res= database.fulfill_trade(message_array[1], message_array[2], message.author, message.guild)
                     await message.channel.send(res[1])
                 if message_command=="$quiz":
-                   await message.channel.send(get_question(message.author, message.guild))[1]
+                   await message.channel.send(database.get_question(message.author, message.guild)[1])
+                if message_command == "$shop":
+                    if not message.author.guild_permissions.administrator:
+                       await message.channel.send("you must be an administrator to configure the shop")
+                       return
+                    res = database.insert_trade(message, message.author, message.guild,"admins", message_array[1],message_array[2], message_array[3:])
+                    await message.channel.send(res[1])
+                    if res[0]:
+                        await message.add_reaction("✅")
 
             else:
                 await message.channel.send("not valid command. If you want a list of all commands, type '$help' ")
@@ -240,7 +249,7 @@ class MyClient(discord.Client):
         if user.bot:
             return
         res= database.fulfill_trade(reaction.message.id, user.mention,  user, reaction.message.guild)
-        await reaction.message.channel.send(res[1])
+        await reaction.message.channel.send(str(res[1]))
 
 
 client = MyClient()

@@ -26,6 +26,7 @@ def get_similar_words( word, page):
                 similar_words.append(similar_word)
             if len(similar_words) == 8:
                 break
+        print("similar_words are,",similar_words)
         return similar_words
 def evaluate_sentence(sentence,page):
     print("tags are",sentence.tags)
@@ -36,7 +37,7 @@ def evaluate_sentence(sentence,page):
     tag_map = {word.lower(): tag for word, tag in sentence.tags}
     replace_nouns = []
     for word, tag in sentence.tags:
-        if tag == 'NN' and word not in page.title:# For now, only blank out non-proper nouns that don't appear in the article title
+        if tag == 'NN':# and word not in page.title:# For now, only blank out non-proper nouns that don't appear in the article title
             # Is it in a noun phrase? If so, blank out the last two words in that phrase
             
             for phrase in sentence.noun_phrases:
@@ -58,19 +59,20 @@ def evaluate_sentence(sentence,page):
                 replace_nouns.append(word)
             break
             
-    if len(replace_nouns) == 0:
-        # Return none if we found no words to replace
-        return None
+    #if len(replace_nouns) == 0:
+    #    # Return none if we found no words to replace
+    #    return None
 
     trivia = {
         'title': page.title,
         'url': page.url,
         'answer': ' '.join(replace_nouns)
     }
+    print("trivia is",trivia )
 
     if len(replace_nouns) == 1:
         # If we're only replacing one word, use WordNet to find similar words
-        trivia['similar_words'] = get_similar_words(replace_nouns[0])
+        trivia['similar_words'] = get_similar_words(replace_nouns[0],page)
     else:
         # If we're replacing a phrase, don't bother - it's too unlikely to make sense
         trivia['similar_words'] = []
@@ -89,6 +91,9 @@ def subject_to_quiz(subject):
     title=subject
     page = wikipedia.page(title)
     blob = TextBlob(page.summary)
-    questions=[]
+    #questions=[]
     sentence = random.choice(blob.sentences)
-    return questions.append(evaluate_sentence(sentence))
+    #questions.append(evaluate_sentence(sentence, page))
+    eval_res =evaluate_sentence(sentence, page)
+    print(eval_res)
+    return eval_res
