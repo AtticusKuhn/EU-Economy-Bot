@@ -13,6 +13,7 @@ import methods
 import commands
 from config import config
 from server import start_server
+import embeds
 
 #server.keep_alive()
 #log = logging.getLogger('werkzeug')
@@ -54,9 +55,11 @@ class MyClient(discord.Client):
             for i in trigger_msg:
                 if(i[1]):
                     if(not i[0]):
-                        await message.channel.send(f'<@!{i[2]}> your smart contract was annuled: {i[1]}')
+                        await message.channel.send(embed=embeds.simple_embed(False,
+                            f'<@!{i[2]}> your smart contract was annuled: {i[1]}'
+                        ))
                     else:
-                        await message.channel.send(f'a smart contract said: {i[1]}')
+                        await message.channel.send(embed=embeds.simple_embed(True,f'a smart contract said: {i[1]}'))
         answer = database.answer_question(message.author, message.content, message.guild)
         if answer is not None:
             await message.channel.send(answer[1])
@@ -64,13 +67,13 @@ class MyClient(discord.Client):
             if(message.content.startswith("$smart-contract")):
                 if(message.content.count("```") == 2):
                     if(message.content.split("```")[0].count(" ") == 2):
-                        await message.channel.send(database.write_contract(message.guild,message.author,message.content.split("```")[1],message.content.split(" ")[1],client, person_roles,server_members,server_roles,person_id  )[1])
+                        await message.channel.send(embed=embeds.simple_embed(True,database.write_contract(message.guild,message.author,message.content.split("```")[1],message.content.split(" ")[1],client, person_roles,server_members,server_roles,person_id  )[1]))
                         return
             if(commands.is_valid_command(message)):
                 message_array = message.content.split(" ")
                 message_command = message_array[0]
                 if(message_command == "$help"):
-                    await message.channel.send('''
+                    await message.channel.send(embed=embeds.simple_embed("info",'''
 - $help - shows all commands
 - $send (ping person) (wallet name) (amount) - sends an amount to a person from that wallet
 - $print (wallet name) (amount) - creates an amount of money in that wallet if you have the role "printer"
@@ -87,8 +90,9 @@ class MyClient(discord.Client):
 - $trade (wallet) (wanted currency) (giving up currency) (optional limitations) - create a trade
 - $accept (message id of trade) (wallet) - accept a trade
 - $quiz - start a quiz based on a subject
+- $shop - same as trade but only for admins and you can also offer roles as trades
                     '''
-                    )
+                    ))
                 if(message_command == "$send"):
                     #send(person_roles, server_members, server_roles, person_id, guild_id, from_wallet, to_wallet, amount)
                     person_roles= list(map(lambda role: role.id , message.author.roles))
@@ -96,16 +100,15 @@ class MyClient(discord.Client):
                     server_roles = list(map(lambda role: role.id, message.guild.roles))
 
                     send_result = database.send(message.author.id, message.guild, message_array[1], message_array[2], message_array[3])
-                    if  send_result[0]:
-                        await message.channel.send(send_result[1])
-                    else:
-                        await message.channel.send(f'an error occured {send_result[1]}')
+                    await message.channel.send(embed=embeds.simple_embed(send_result[0],send_result[1]))
+                    #if  send_result[0]:
+                     #   await message.channel.send(send_result[1])
+                    #else:
+                    #    await message.channel.send(f'an error occured {send_result[1]}')
                 if(message_command == "$create"):
                     result = database.create(message.guild, message_array[1])
-                    if(result[0]):
-                        await message.channel.send("created")
-                    else:
-                        await message.channel.send(f'error {result[1]}')
+                    await message.channel.send(embed=embeds.simple_embed(result[0],result[1]))
+
                 if(message_command == "$balance"):
                     ##guild,wallet,server_members, server_roles
                     bal = database.get_balance(message.author,message.guild, message_array[1])
@@ -120,20 +123,17 @@ class MyClient(discord.Client):
                 if(message_command == "$print"):
                     ##(discord_client, guild_id, wallet, amount)
                     result = database.print_money(message.author, message.guild, message_array[1], message_array[2])
-                    if(result[0]):
-                        await message.channel.send("the printing was successful")
-                    else:
-                        await message.channel.send(f' there was an error {result[1]}')
+                    await message.channel.send(embed=embeds.simple_embed(result[0],result[1]))
                 if(message_command == "$clear-contracts"):
                     database.clear_contracts(message.guild, message.author.id)
-                    await message.channel.send("your contracts were all deleted")
+                    await message.channel.send(embed=embeds.simple_embed("info","your contracts were all deleted"))
                 if(message_command == "$links"):
-                    await message.channel.send("Github - https://github.com/eulerthedestroyer/EU-Economy-Bot \n Discord link -  https://discord.gg/ghFs7ZM \n Bot link - https://discord.com/api/oauth2/authorize?client_id=716434826151854111&permissions=268503104m&scope=bot \n Web interface - https://economy-bot.atticuskuhn.repl.co")
+                    await message.channel.send(embed=embeds.simple_embed("info","Github - https://github.com/eulerthedestroyer/EU-Economy-Bot \n Discord link -  https://discord.gg/ghFs7ZM \n Bot link - https://discord.com/api/oauth2/authorize?client_id=716434826151854111&permissions=268503104m&scope=bot \n Web interface - https://economy-bot.atticuskuhn.repl.co"))
                 if(message_command == "$config"):
                     if message.author.guild_permissions.administrator:
-                        await message.channel.send(database.set_config(message.guild ,message_array[1], message_array[2]))
+                        await message.channel.send(embed=embeds.simple_embed(True,database.set_config(message.guild ,message_array[1], message_array[2])))
                     else:
-                        await message.channel.send("you must be an administrator to access the config")
+                        await message.channel.send(embed=embeds.simple_embed(False,"you must be an administrator to access the config"))
                 if message_command.startswith("$stats"):
                     result = methods.get_wallet(server_members,server_roles, message.guild.id, message_array[1])
                     if(result[0]):
@@ -150,7 +150,7 @@ class MyClient(discord.Client):
                             os.remove("fig.jpg")
                             #await message.channel.send(found_wallet["record"])
                         else:
-                             await message.channel.send("can't find any stats")
+                             await message.channel.send(embed=embeds.simple_embed(False,"can't find any stats"))
                     else:
                         await message.channel.send("error")
                 if message_command =="$whois":
@@ -194,7 +194,7 @@ class MyClient(discord.Client):
                         await message.channel.send("you do not have administrator permissions")
                         return                    
                     result = database.set_money(message.guild, message_array[2],message_array[1])
-                    await message.channel.send(f'{result[0]}{result[1]}')
+                    await message.channel.send(embed=embeds.simple_embed(result[0],f'{result[0]}{result[1]}'))
                 if message_command == "$set-balance-each":
                     if(not message.author.guild_permissions.administrator):
                         await message.channel.send("you do not have administrator permissions")
@@ -220,28 +220,28 @@ class MyClient(discord.Client):
                     await message.channel.send(embed=embedVar)
                 if message_command == "$wallet-settings":
                     res= database.set_settings(message.guild, message.author, message_array[1], message_array[2], message_array[3], message_array[4])
-                    await message.channel.send(res[1])
+                    await message.channel.send(embed=embeds.simple_embed(res[0],res[1]))
                 if message_command == "$trade":
                     res = database.insert_trade(message, message.author,message.guild,message_array[1], message_array[2],message_array[3], message_array[4:])
-                    await message.channel.send(res[1])
+                    await message.channel.send(embed=embeds.simple_embed(res[0],res[1]))
                     if res[0]:
                         await message.add_reaction("✅")
                 if message_command == "$accept":
                     res= database.fulfill_trade(message_array[1], message_array[2], message.author, message.guild)
-                    await message.channel.send(res[1])
+                    await message.channel.send(embed=embeds.simple_embed(res[0],res[1]))
                 if message_command=="$quiz":
-                   await message.channel.send(database.get_question(message.author, message.guild)[1])
+                   await message.channel.send(embed=embeds.simple_embed(True,database.get_question(message.author, message.guild)[1]))
                 if message_command == "$shop":
                     if not message.author.guild_permissions.administrator:
-                       await message.channel.send("you must be an administrator to configure the shop")
+                       await message.channel.send(embed=embeds.simple_embed(False,"you must be an administrator to configure the shop"))
                        return
                     res = database.insert_trade(message, message.author, message.guild,"admins", message_array[1],message_array[2], message_array[3:])
-                    await message.channel.send(res[1])
+                    await message.channel.send(embed=embeds.simple_embed(res[0],res[1]))
                     if res[0]:
                         await message.add_reaction("✅")
 
             else:
-                await message.channel.send("not valid command. If you want a list of all commands, type '$help' ")
+                await message.channel.send(embed=embeds.simple_embed(False,"not valid command. If you want a list of all commands, type '$help' "))
             
     async def on_reaction_add(self,reaction, user):
         if reaction.emoji != "✅":
