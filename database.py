@@ -22,10 +22,13 @@ from subprocess import check_output
 import time
 import math
 import logging
+import random
+
 #import inspect
 import asyncio
 import discord
 from quiz import subject_to_quiz
+import database
 logging.basicConfig(level=logging.INFO)
 #import evaler
 #import dnspython 
@@ -385,11 +388,13 @@ def set_config(guild, setting_name, option):
             "default_balance": config["default_balance"]
         })
 #print(setting_name)
-    if setting_name == "default_balance" and not option.isdigit():
-        return (False, "must be a number")
+    if setting_name in ["default_balance","quiz-payoff", "quiz-cooldown","work-payoff","work-cooldown"]:
+        if not option.isdigit():
+            return (False, "must be a number")
+        option=int(option)
     
     if setting_name not in config["config_options"]:
-        return "can't find that setting"
+        return (False, f'cannot find that setting; Currently supported settings are ${", ".join(config["config_options"])} ')
     if setting_name == "log-channel":
         match = re.match(r'<#\d{18}>', option)
         print(match)
@@ -716,8 +721,18 @@ def get_question(person, guild):
     })
     if server_config is None:
         return (False, "server config is not set up. Ask your admin to set up the config")
-    if "quiz-subject" not in server_config:
-        return (False, "there is no quiz-subject set for the quiz. Ask your admin to set up a quiz-subject in the config")
+    quiz_cooldown = config["quiz-cooldown"]
+    if "quiz-cooldown" in server_config:
+        quiz_cooldown = server_config["quiz-cooldown"]
+    person_wallet = guild_collection.find_one({"id":person.id})
+    if person_wallet is not None:
+        if "quiz-cooldown" in person_wallet:
+            if time.time() - person_wallet["quiz-cooldown"] <quiz_cooldown:
+                return (False,"wait for the cooldown to end")
+    guild_collection.update_one(
+        {"id":person.id},
+        {"$set":{"quiz-cooldown":time.time()}}
+    )
     #try:
     question = subject_to_quiz(server_config["quiz-subject"])
     print(question,"question")
@@ -742,7 +757,18 @@ def answer_question(person, answer, guild):
     if question["question"] is not None:
         if "answer" in  question["question"]:
             if question["question"]["answer"] != answer and answer not in question["question"]["similar_words"]:
-                return (False,f'incorrect answer, correct answer is {question["question"]["answer"]}')
+                return (False,f'inrrect answer, correct answer is {question["question"]["answer"]}')
+    server_config =  guild_collection.find_one({
+        "type":"server",
+        "id"  : guild.id
+    })
+    if server_config is not None and "quiz-payoff" in server_config:
+        guild_collection.update_one(
+            {"id":  person.id },
+            { "$inc":{f'balance':server_config["quiz-payoff"]} }
+        )
+        return (True, f'your balance has been increased by {server_config["quiz-payoff"]}')
+
     guild_collection.update_one(
         {"id":  person.id },
         { "$inc":{f'balance':1} }
@@ -750,3 +776,35 @@ def answer_question(person, answer, guild):
     if answer in question["question"]["similar_words"]:
         return (True, f'the correct answer was {question["question"]["answer"]}, but that was close enough to be correct.')
     return (True, "your balance has been increased by one")
+
+def work(person,guild):
+    wallet = methods.find_create(person.id,guild)
+    cooldown = config["work-cooldown"]
+    guild_collection=db[str(guild.id)]
+
+    server_config =  guild_collection.find_one({
+        "type":"server","id"  : guild.id
+    })
+    if server_config is not None:
+        if "work-cooldown" in server_config:
+            cooldown = server_config["work-cooldown" ]
+    if "cooldown-work" in wallet:
+        print(time.time(), wallet["cooldown-work"],time.time() - wallet["cooldown-work"], cooldown)
+        if time.time() - wallet["cooldown-work"] < cooldown:
+            return (False,"wait to work")
+    payout=config["work-payoff"]
+    if server_config is not None:
+        if "work-payoff" in server_config:
+            payout = server_config["work-payoff" ]
+    guild_collection.update_one(
+        {"id":  person.id },
+        { "$inc":{f'balance':payout} }
+    )
+    guild_collection.update_one(
+        {"id":  person.id },
+        { "$set":{f'cooldown-work':time.time()} }
+    )
+    lines = open('jobs.txt').read().splitlines()
+    job =random.choice(lines)
+    return (True,f'You worked as {job} and earned {payout}')
+    

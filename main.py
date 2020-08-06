@@ -62,7 +62,7 @@ class MyClient(discord.Client):
                         await message.channel.send(embed=embeds.simple_embed(True,f'a smart contract said: {i[1]}'))
         answer = database.answer_question(message.author, message.content, message.guild)
         if answer is not None:
-            await message.channel.send(answer[1])
+            await message.channel.send(embed=embeds.simple_embed(answer[0],answer[1]))
         if(message.content.startswith("$")):
             if(message.content.startswith("$smart-contract")):
                 if(message.content.count("```") == 2):
@@ -131,7 +131,7 @@ class MyClient(discord.Client):
                     await message.channel.send(embed=embeds.simple_embed("info","Github - https://github.com/eulerthedestroyer/EU-Economy-Bot \n Discord link -  https://discord.gg/ghFs7ZM \n Bot link - https://discord.com/api/oauth2/authorize?client_id=716434826151854111&permissions=268503104m&scope=bot \n Web interface - https://economy-bot.atticuskuhn.repl.co"))
                 if(message_command == "$config"):
                     if message.author.guild_permissions.administrator:
-                        await message.channel.send(embed=embeds.simple_embed(True,database.set_config(message.guild ,message_array[1], message_array[2])))
+                        await message.channel.send(embed=embeds.simple_embed(True,database.set_config(message.guild ,message_array[1], message_array[2])[1]))
                     else:
                         await message.channel.send(embed=embeds.simple_embed(False,"you must be an administrator to access the config"))
                 if message_command.startswith("$stats"):
@@ -230,7 +230,8 @@ class MyClient(discord.Client):
                     res= database.fulfill_trade(message_array[1], message_array[2], message.author, message.guild)
                     await message.channel.send(embed=embeds.simple_embed(res[0],res[1]))
                 if message_command=="$quiz":
-                   await message.channel.send(embed=embeds.simple_embed(True,database.get_question(message.author, message.guild)[1]))
+                    res=database.get_question(message.author, message.guild)
+                    await message.channel.send(embed=embeds.simple_embed(res[0],res[1]))
                 if message_command == "$shop":
                     if not message.author.guild_permissions.administrator:
                        await message.channel.send(embed=embeds.simple_embed(False,"you must be an administrator to configure the shop"))
@@ -239,7 +240,9 @@ class MyClient(discord.Client):
                     await message.channel.send(embed=embeds.simple_embed(res[0],res[1]))
                     if res[0]:
                         await message.add_reaction("✅")
-
+                if message_command == "$work":
+                    res = database.work(message.author, message.guild)
+                    await message.channel.send(embed=embeds.simple_embed(*res))
             else:
                 await message.channel.send(embed=embeds.simple_embed(False,"not valid command. If you want a list of all commands, type '$help' "))
             

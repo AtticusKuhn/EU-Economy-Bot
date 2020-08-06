@@ -22,7 +22,8 @@ commands_array = [
    ("$accept",2),
    ("$quiz",0),
    ("$shop", 2),
-   ("$market",0)
+   ("$market",0),
+   ("$work",0)
    ]
 def is_valid_command(user_message):
     user_array = user_message.content.split(" ")

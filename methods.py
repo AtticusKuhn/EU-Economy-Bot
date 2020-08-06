@@ -335,3 +335,13 @@ def whois(message_array, guild):
 def valid_item(name):
     pattern = re.compile("^[A-Za-z]{3,10}$")
     return pattern.match(name)
+
+
+
+def find_create(wallet_id,guild):
+    guild_collection=db[str(guild.id)]
+    wallet=guild_collection.find_one({"id":wallet_id})
+    if wallet is None:
+        res= database.create(guild,f'<@!{wallet_id}>')
+        return res[2]
+    return wallet
