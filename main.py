@@ -75,7 +75,7 @@ class MyClient(discord.Client):
                 if(message_command == "$help"):
                     await message.channel.send(embed=embeds.simple_embed("info",'''
 - $help - shows all commands
-- $send (ping person) (wallet name) (amount) - sends an amount to a person from that wallet
+- $send (from wallet) (to wallet) (amount) - sends an amount to a person from that wallet
 - $print (wallet name) (amount) - creates an amount of money in that wallet if you have the role "printer"
 - $balance (wallet name) - returns the amount of money in the wallet
 - $links - show some links related to this bot
@@ -90,7 +90,8 @@ class MyClient(discord.Client):
 - $trade (wallet) (wanted currency) (giving up currency) (optional limitations) - create a trade
 - $accept (message id of trade) (wallet) - accept a trade
 - $quiz - start a quiz based on a subject
-- $shop - same as trade but only for admins and you can also offer roles as trades
+- $shop (item name) (price) - same as trade but only for admins and you can also offer roles as trades
+- $work - get an amount of money no strings attached
                     '''
                     ))
                 if(message_command == "$send"):
