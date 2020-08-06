@@ -15,7 +15,6 @@
 import os
 import re
 from pymongo import MongoClient
-#import pprint
 import methods
 from config import config
 from subprocess import check_output
@@ -23,15 +22,12 @@ import time
 import math
 import logging
 import random
-
-#import inspect
+import embeds
 import asyncio
 import discord
 from quiz import subject_to_quiz
 import database
 logging.basicConfig(level=logging.INFO)
-#import evaler
-#import dnspython 
 
 client = MongoClient(os.environ.get("MONGO_URL"))
 db = client.database
@@ -84,7 +80,7 @@ def send(person_id, guild, from_wallet, to_wallet, amount):
                 {"id":  reciever_account["id"] },
                 { "$inc":{f'balance{currency}':amount} }
             )
-            log_money(guild,f'<@{person_id}> sent {amount} from {from_wallet} to {to_wallet}')
+            log_money(guild,f'<@{person_id}> sent {amount} from {from_wallet_id[1].mention } to {to_wallet_id[1].mention}')
             return (True, f'transfer successful. you send {amount}, making your balance '+ str(sender_account[f'balance{currency}'])+f' {currency}')
                 
         else:
@@ -711,7 +707,7 @@ def log_money(guild, message):
     except:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-    loop.create_task(channel.send(f'log: {message}'))
+    loop.create_task(channel.send(embed=embeds.simple_embed(True,f'log: {message}')))
 
 def get_question(person, guild):
     guild_collection=db[str(guild.id)]
