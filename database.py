@@ -724,7 +724,7 @@ def get_question(person, guild):
     if person_wallet is not None:
         if "quiz-cooldown" in person_wallet:
             if time.time() - person_wallet["quiz-cooldown"] <quiz_cooldown:
-                return (False,"wait for the cooldown to end")
+                return (False,f'wait to quiz. You must wait {methods.seconds_to_time(quiz_cooldown- time.time()+person_wallet["cooldown-work"])} to quiz again')
     guild_collection.update_one(
         {"id":person.id},
         {"$set":{"quiz-cooldown":time.time()}}
@@ -748,7 +748,7 @@ def answer_question(person, answer, guild):
     if question is None:
         return None
     guild_collection.delete_one({"type":"quiz","person":person.id})
-    if time.time() - question["time"] >10000:
+    if time.time() - question["time"] >10:
         return (False, "you ran out of time sorry")
     if question["question"] is not None:
         if "answer" in  question["question"]:
@@ -787,7 +787,7 @@ def work(person,guild):
     if "cooldown-work" in wallet:
         print(time.time(), wallet["cooldown-work"],time.time() - wallet["cooldown-work"], cooldown)
         if time.time() - wallet["cooldown-work"] < cooldown:
-            return (False,"wait to work")
+            return (False,f'wait to work. You must wait {methods.seconds_to_time(cooldown- time.time()+wallet["cooldown-work"])} to work again')
     payout=config["work-payoff"]
     if server_config is not None:
         if "work-payoff" in server_config:

@@ -118,9 +118,9 @@ class MyClient(discord.Client):
                         for key,value in bal[1].items():
                             if("balance" in key):
                                 res = res+ f'{key}: {value}\n'
-                        await message.channel.send(f'the balance is:\n {res}')
+                        await message.channel.send(embed=embeds.simple_embed(True,f'the balance is:\n {res}'))
                     else:
-                        await message.channel.send(f'there was an error: {bal[1]}')
+                        await message.channel.send(embed=embeds.simple_embed(False,f'there was an error: {bal[1]}'))
                 if(message_command == "$print"):
                     ##(discord_client, guild_id, wallet, amount)
                     result = database.print_money(message.author, message.guild, message_array[1], message_array[2])

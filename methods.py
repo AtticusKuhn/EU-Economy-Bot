@@ -232,3 +232,22 @@ def find_create(wallet_id,guild):
         print(res)
         return res[2]
     return wallet
+
+
+def seconds_to_time(seconds:int):
+    seconds = seconds % (24 * 3600) 
+    day = seconds // 86400
+    seconds %= 86400
+    hour = seconds // 3600
+    seconds %= 3600
+    minutes = seconds // 60
+    seconds %= 60
+    day =int(day)
+    hour = int(hour)
+    minutes= int(minutes)
+    seconds = int(seconds)
+    day = ("1 day " if day==1 else "") if day==0 else f'{day} days '
+    hour = ("1 hour " if hour==1 else "") if hour==0 else f'{hour} hours '
+    minutes = ("1 minute " if minutes==1 else "") if minutes==0 else  f'{minutes} minutes '
+    seconds = ("1 second" if seconds==1 else "" )if seconds==0 else  f'{seconds} seconds'
+    return day+hour+minutes+seconds
