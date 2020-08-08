@@ -186,7 +186,7 @@ def print_money(person,guild, wallet, amount):
     can_print = False
     if person.guild_permissions.administrator:
         can_print=True
-    account_of_printing =guild_collection.find_one({"id":wallet_id[1].id})
+    account_of_printing =methods.find_create(wallet_id[1].id, guild)
     if account_of_printing is None:
         c_result = create(guild, wallet)
         if not c_result[0]:
@@ -384,13 +384,13 @@ def set_config(guild, setting_name, option):
             "default_balance": config["default_balance"]
         })
 #print(setting_name)
-    if setting_name in ["default_balance","quiz-payoff", "quiz-cooldown","work-payoff","work-cooldown"]:
+    if setting_name in ["default_balance","quiz-payoff", "quiz-cooldown","work-payoff","work-cooldown","quiz-time"]:
         if not option.isdigit():
             return (False, "must be a number")
         option=int(option)
     
     if setting_name not in config["config_options"]:
-        return (False, f'cannot find that setting; Currently supported settings are ${", ".join(config["config_options"])} ')
+        return (False, f'cannot find hat setting; Currently supported settings are ${", ".join(config["config_options"].keys())} ')
     if setting_name == "log-channel":
         match = re.match(r'<#\d{18}>', option)
         print(match)
@@ -448,8 +448,8 @@ def wallet_by_id(guild,person_id):
 
 
 def set_money(guild, amount,wallet):
-    server_members = list(map(lambda member:member.id, guild.members))
-    server_roles = list(map(lambda role: role.id, guild.roles))
+    #server_members = list(map(lambda member:member.id, guild.members))
+    #s#erver_roles = list(map(lambda role: role.id, guild.roles))
     if("-" in amount):
         amount_array = amount.split("-")
         print(amount.split("-"))
@@ -464,6 +464,7 @@ def set_money(guild, amount,wallet):
     to_wallet = methods.get_wallet(guild, wallet)
     if(not to_wallet[0]):
         return to_wallet
+    found_wallet = methods.find_create(to_wallet[1].id, guild)
     if 'currency' in locals():
         guild_collection.update_one(
             {"id":  to_wallet[1].id },
@@ -696,6 +697,8 @@ def log_money(guild, message):
     print("config is not none")
     if "log-channel" not in server_config:
         return
+    if server_config["log-channel"] is None:
+        return
     print("log-channel exists and it is", server_config["log-channel"])
     channel = discord.utils.find(lambda m: str(m.id) == str(server_config["log-channel"]), guild.channels)
     if channel is None:
@@ -748,16 +751,19 @@ def answer_question(person, answer, guild):
     if question is None:
         return None
     guild_collection.delete_one({"type":"quiz","person":person.id})
-    if time.time() - question["time"] >10:
+    server_config =  guild_collection.find_one({
+        "type":"server",
+        "id"  : guild.id
+    })
+    quiz_time = config["quiz-time"]
+    if "quiz-time" in server_config:
+        quiz_time = server_config["quiz-time"]
+    if time.time() - question["time"] >quiz_time:
         return (False, "you ran out of time sorry")
     if question["question"] is not None:
         if "answer" in  question["question"]:
             if question["question"]["answer"] != answer and answer not in question["question"]["similar_words"]:
                 return (False,f'inrrect answer, correct answer is {question["question"]["answer"]}')
-    server_config =  guild_collection.find_one({
-        "type":"server",
-        "id"  : guild.id
-    })
     if server_config is not None and "quiz-payoff" in server_config:
         guild_collection.update_one(
             {"id":  person.id },
@@ -788,19 +794,71 @@ def work(person,guild):
         print(time.time(), wallet["cooldown-work"],time.time() - wallet["cooldown-work"], cooldown)
         if time.time() - wallet["cooldown-work"] < cooldown:
             return (False,f'wait to work. You must wait {methods.seconds_to_time(cooldown- time.time()+wallet["cooldown-work"])} to work again')
-    payout=config["work-payoff"]
+    payout =[{
+        "name":"Bot default",
+        "amount":config["work-payoff"]
+    }]
     if server_config is not None:
         if "work-payoff" in server_config:
-            payout = server_config["work-payoff" ]
-    guild_collection.update_one(
-        {"id":  person.id },
-        { "$inc":{f'balance':payout} }
-    )
+            payout[0] = {
+                "name":"server default",
+                "amount":server_config["work-payoff" ]
+            }
+        if "work-conditional" in server_config:
+            payout += server_config["work-conditional"]
+    parsed_message=""
+    for index in payout:
+        if "condition" in index:
+            print(index["condition"])
+            if person.id not in methods.whois(index["condition"].split(" "), guild):
+                print(person.id, methods.whois(index["condition"].split(" "), guild),person.id not in methods.whois(index["condition"].split(" "), guild) )
+                continue
+        amount= index["amount"]
+        if "-" in str(amount):
+            amount=str(amount)
+            currency=f'-{amount.split("-")[1]}'
+            amount =int(amount.split("-")[0])
+        else:
+            currency=""
+            amount=int(amount)
+        guild_collection.update_one(
+            {"id":  person.id },
+            { "$inc":{f'balance{currency}':amount} }
+        )
+        parsed_message+= f'\n {index["amount"]} from {index["name"]}'
+
     guild_collection.update_one(
         {"id":  person.id },
         { "$set":{f'cooldown-work':time.time()} }
     )
     lines = open('jobs.txt').read().splitlines()
     job =random.choice(lines)
-    return (True,f'You worked as {job} and earned {payout}')
-    
+    return (True,f'You worked as {job} and earned {parsed_message}')
+
+def work_conditions(guild,level_name, amount, conditional):
+    guild_collection=db[str(guild.id)]
+    server_config =  guild_collection.find_one({
+        "type":"server","id"  : guild.id
+    })
+    if server_config is None:
+        guild_collection.insert_one({
+            "type":"server",
+            "id":guild.id,
+            "default_balance": config["default_balance"]
+        })
+        server_config =  guild_collection.find_one({
+            "type":"server","id"  : guild.id
+        })
+    if not re.match(r"^\d+(-[A-Za-z]{3,10})?$", amount):
+        return (False, "Invlaid currency")
+    if not re.match(r"^\w{3,10}$", level_name):
+        return (False, "Invlaid level name")
+    guild_collection.update_one(
+        {"id":guild.id},
+        {"$push":{f'work-conditional':{
+            "name":level_name,
+            "condition":" ".join(conditional),
+            "amount":amount
+        }}}
+    )
+    return (True, "work level set")

@@ -92,6 +92,7 @@ class MyClient(discord.Client):
 - $quiz - start a quiz based on a subject
 - $shop (item name) (price) - same as trade but only for admins and you can also offer roles as trades
 - $work - get an amount of money no strings attached
+- $work-conditional (level name) (work reward) (conditional) - allows admins to add levels to working and give different people different work rewards
                     '''
                     ))
                 if(message_command == "$send"):
@@ -243,6 +244,12 @@ class MyClient(discord.Client):
                         await message.add_reaction("✅")
                 if message_command == "$work":
                     res = database.work(message.author, message.guild)
+                    await message.channel.send(embed=embeds.simple_embed(*res))
+                if message_command == "$work-conditional":
+                    if not message.author.guild_permissions.administrator:
+                       await message.channel.send(embed=embeds.simple_embed(False,"you must be an administrator to configure conditional work rewards"))
+                       return
+                    res = database.work_conditions(message.guild,message_array[1], message_array[2], message_array[3:])
                     await message.channel.send(embed=embeds.simple_embed(*res))
             else:
                 await message.channel.send(embed=embeds.simple_embed(False,"not valid command. If you want a list of all commands, type '$help' "))

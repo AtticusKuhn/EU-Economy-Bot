@@ -251,3 +251,9 @@ def seconds_to_time(seconds:int):
     minutes = ("1 minute " if minutes==1 else "") if minutes==0 else  f'{minutes} minutes '
     seconds = ("1 second" if seconds==1 else "" )if seconds==0 else  f'{seconds} seconds'
     return day+hour+minutes+seconds
+
+def time_to_seconds(time:str):
+    if time.isdigit():
+        return (True,int(time))
+    #if re.match(r"^(\d+h)?(\d+m)?(\d+s)?$", time):
+        
