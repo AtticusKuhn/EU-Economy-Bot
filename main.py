@@ -113,6 +113,8 @@ class MyClient(discord.Client):
 
                 if(message_command == "$balance"):
                     ##guild,wallet,server_members, server_roles
+                    if len(message_array)==1:
+                        message_array.append(message.author.mention)
                     bal = database.get_balance(message.author,message.guild, message_array[1])
                     if(bal[0]):
                         res = ""
@@ -133,7 +135,7 @@ class MyClient(discord.Client):
                     await message.channel.send(embed=embeds.simple_embed("info","Github - https://github.com/eulerthedestroyer/EU-Economy-Bot \n Discord link -  https://discord.gg/ghFs7ZM \n Bot link - https://discord.com/api/oauth2/authorize?client_id=716434826151854111&permissions=268503104m&scope=bot \n Web interface - https://economy-bot.atticuskuhn.repl.co"))
                 if(message_command == "$config"):
                     if message.author.guild_permissions.administrator:
-                        await message.channel.send(embed=embeds.simple_embed(True,database.set_config(message.guild ,message_array[1], message_array[2])[1]))
+                        await message.channel.send(embed=embeds.simple_embed(*database.set_config(message.guild ,message_array[1], message_array[2])))
                     else:
                         await message.channel.send(embed=embeds.simple_embed(False,"you must be an administrator to access the config"))
                 if message_command.startswith("$stats"):

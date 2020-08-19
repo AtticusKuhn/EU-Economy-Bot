@@ -5,7 +5,7 @@ commands_array = [
     ("$send",3),
    #######  ("$request",2),
    ("$create",1),
-   ("$balance",1),
+   ("$balance","any"),
    ("$print",2),
    ("$dev-db",0),
    ("$clear-contracts",0),

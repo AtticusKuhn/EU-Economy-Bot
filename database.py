@@ -727,12 +727,14 @@ def get_question(person, guild):
     if person_wallet is not None:
         if "quiz-cooldown" in person_wallet:
             if time.time() - person_wallet["quiz-cooldown"] <quiz_cooldown:
-                return (False,f'wait to quiz. You must wait {methods.seconds_to_time(quiz_cooldown- time.time()+person_wallet["cooldown-work"])} to quiz again')
+                return (False,f'wait to quiz. You must wait {methods.seconds_to_time(quiz_cooldown- time.time()+person_wallet["quiz-cooldown"])} to quiz again')
     guild_collection.update_one(
         {"id":person.id},
         {"$set":{"quiz-cooldown":time.time()}}
     )
     #try:
+    if not "quiz-subject" in server_config:
+        return (False, "no quiz subject for this server set. Ask you admin to set the quiz subject by doing something like $config quiz-subject {Subject}")
     question = subject_to_quiz(server_config["quiz-subject"])
     print(question,"question")
 
@@ -762,8 +764,8 @@ def answer_question(person, answer, guild):
         return (False, "you ran out of time sorry")
     if question["question"] is not None:
         if "answer" in  question["question"]:
-            if question["question"]["answer"] != answer and answer not in question["question"]["similar_words"]:
-                return (False,f'inrrect answer, correct answer is {question["question"]["answer"]}')
+            if question["question"]["answer"].lower() != answer.lower() and answer not in question["question"]["similar_words"]:
+                return (False,f'incorrect answer, correct answer is {question["question"]["answer"]}')
     if server_config is not None and "quiz-payoff" in server_config:
         guild_collection.update_one(
             {"id":  person.id },
@@ -849,7 +851,7 @@ def work_conditions(guild,level_name, amount, conditional):
         server_config =  guild_collection.find_one({
             "type":"server","id"  : guild.id
         })
-    if not re.match(r"^\d+(-[A-Za-z]{3,10})?$", amount):
+    if not re.match(r"^\d+(-[a-z]{3,10})?$", amount):
         return (False, "Invlaid currency")
     if not re.match(r"^\w{3,10}$", level_name):
         return (False, "Invlaid level name")

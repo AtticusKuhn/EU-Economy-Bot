@@ -71,15 +71,16 @@ def is_user(server_id,user_id):
 def get_wallet(guild, ping_wallet):
     person = discord.utils.find(lambda person: str(ping_wallet) in str(person.name), guild.members)
     if person is not None:
-        return (True, person, "person")
-    person = discord.utils.find(lambda person: str(re.findall(r'\d{18}',ping_wallet)[0]) == str(re.findall(r'\d{18}',person.mention)[0]), guild.members)
-    if person is not None:
             return (True, person, "person")
     role = discord.utils.find(lambda role: str(ping_wallet) in str(role.name), guild.roles)
     if role is not None:
         return (True, role, "role")
-    role = discord.utils.find(lambda role: str(re.findall(r'\d{18}',ping_wallet)[0]) == str(re.findall(r'\d{18}',role.mention)[0]), guild.roles)
-    if role is not None:
+    if len(re.findall(r'\d{18}',ping_wallet)) > 0:
+        person = discord.utils.find(lambda person: str(re.findall(r'\d{18}',ping_wallet)[0]) == str(re.findall(r'\d{18}',person.mention)[0]), guild.members)
+        if person is not None:
+            return (True, person, "person")
+        role = discord.utils.find(lambda role: str(re.findall(r'\d{18}',ping_wallet)[0]) == str(re.findall(r'\d{18}',role.mention)[0]), guild.roles)
+        if role is not None:
             return (True, role, "role")
     return (False, "not found")
 

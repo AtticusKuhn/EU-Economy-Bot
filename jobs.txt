@@ -2,7 +2,7 @@ Able Seamen
 Accountant
 Accountants and Auditor
 Actor
-Actuarie
+Actuary
 Acupuncturists 
 Acute Care Nurses 
 Adapted Physical Education Specialists 
@@ -100,7 +100,7 @@ Baker
 Baker, Bread and Pastry
 Baker, Manufacturing
 Barber
-Baristas 
+Barista
 Bartender
 Battery Repairer
 Bench Worker, Jewelry
@@ -300,7 +300,7 @@ Crushing, Grinding, and Polishing Machine Setter, Operator, and Tender
 Curator
 Custom Tailor
 Customer Service Representative
-Customer Service Representative, Utilitie
+Customer Service Representative, Utility
 Customs Brokers 
 Cutters and Trimmer, Hand
 Cutting and Slicing Machine Operators and Tender
@@ -709,7 +709,7 @@ Law Teacher, Postsecondary
 Lawn Service Manager
 Lawyer
 Lay-Out Worker, Metal and Plastic
-Legal Secretarie
+Legal Secretary
 Legal Support Worker, All Other
 Legislator
 Letterpress Setters and Set-Up Operator
@@ -802,7 +802,7 @@ Medical Equipment Preparer
 Medical Equipment Repairer
 Medical Records and Health Information Technician
 Medical Scientist, Except Epidemiologist
-Medical Secretarie
+Medical Secretary
 Medical Transcriptionist
 Meeting and Convention Planner
 Mental Health and Substance Abuse Social Worker
@@ -814,7 +814,7 @@ Metal Molding, Coremaking, and Casting Machine Setters and Set-Up Operator
 Metal Workers and Plastic Worker, All Other
 Metal-Refining Furnace Operators and Tender
 Meter Mechanic
-Meter Reader, Utilitie
+Meter Reader, Utility
 Methane Landfill Gas Generation System Technicians 
 Methane/Landfill Gas Collection System Operators 
 Microbiologist
@@ -1143,7 +1143,7 @@ Rough Carpenter
 Roustabout, Oil and Ga
 Sailors and Marine Oiler
 Sales Agent, Financial Service
-Sales Agent, Securities and Commoditie
+Sales Agent, Securities and Commodity
 Sales and Related Worker, All Other
 Sales Engineer
 Sales Manager
@@ -1151,7 +1151,7 @@ Sales Representative, Agricultural
 Sales Representative, Chemical and Pharmaceutical
 Sales Representative, Electrical--Electronic
 Sales Representative, Instrument
-Sales Representative, Mechanical Equipment and Supplie
+Sales Representative, Mechanical Equipment and Supply
 Sales Representative, Medical
 Sales Representative, Service, All Other
 Sales Representative, Wholesale and Manufacturing, Except Technical and Scientific Product
