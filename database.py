@@ -92,6 +92,7 @@ def send(person_id, guild, from_wallet, to_wallet, amount):
     pass
 
 def create(guild, wallet_ping):
+    print("created called with", wallet_ping)
     guild_collection =db[str(guild.id)]
     get_wallet_result = methods.get_wallet( guild, wallet_ping)
     
@@ -112,7 +113,6 @@ def create(guild, wallet_ping):
     if(get_wallet_result[0]):
         if guild_collection.find_one({ "id":get_wallet_result[1].id}):
             return (False, "account already exists")
-        name = ""
         for person in guild.members:
             if(person.id == get_wallet_result[1].id):
                 found_person = person
@@ -138,6 +138,7 @@ def create(guild, wallet_ping):
                 "balance": int(default_balance)
              })
             return_wallet = guild_collection.find_one({"_id":return_wallet.inserted_id})
+        print("create will return", return_wallet)
         return (True, "created",return_wallet)
     else:
         return (False, "doesn't exist")
@@ -297,7 +298,7 @@ def execute_contracts(array_of_contracts, context, guild, person_roles,server_me
         server_roles = str(server_roles)
         person_id = str(person_id)
         #print(contract["args"],"is contract['args']")
-        contract["code"] = contract["code"].replace("send(",f'send({contract["args"][3]}, message.guild,')
+        #contract["code"] = contract["code"].replace("send(",f'send({contract["args"][3]}, message.guild,')
         safe_list = ['math','acos', 'asin', 'atan', 'atan2', 'ceil', 'cos', 'cosh', 'de grees', 'e', 'exp', 'fabs', 'floor', 'fmod', 'frexp', 'hypot', 'ldexp', 'log', 'log10', 'modf', 'pi', 'pow', 'radians', 'sin', 'sinh', 'sqrt', 'tan', 'tanh', "message", "context","locals"] 
         safe_dict = dict([ (k, locals().get(k, None)) for k in safe_list ]) 
         safe_dict["send"] = send
@@ -544,7 +545,6 @@ def  insert_trade(message, person, guild,wallet, offer,cost, options):
             return (False, "bad wallet")
         if not methods.can_access_wallet(guild, person.id, wallet):
             return (False,"bad wallet 2")
-
     offer_currency=""
     offer_amount = offer
     if "-" in offer:

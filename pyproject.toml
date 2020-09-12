@@ -9,7 +9,7 @@ description = ""
 name = "eu-economy-bot"
 version = "0.1.0"
 [tool.poetry.dependencies]
-discord = "^1.0"
+discord = "^1.0.0"
 pymongo = "^3.10"
 python = "^3.8"
 restrictedpython = "^5.0"

@@ -69,6 +69,7 @@ def is_user(server_id,user_id):
 
 
 def get_wallet(guild, ping_wallet):
+    print("get wallet called with", ping_wallet)
     person = discord.utils.find(lambda person: str(ping_wallet) in str(person.name), guild.members)
     if person is not None:
             return (True, person, "person")
@@ -130,14 +131,7 @@ def can_access_wallet(guild, person_id, wallet):
     #print(4)
     return False
 
-def isclass(object):
-    """Return true if the object is a class.
 
-    Class objects provide these attributes:
-        __doc__         documentation string
-        __module__      name of module in which this class was defined"""
-    #print(isinstance(object, (type, types.ClassType)))
-    return isinstance(object, (type, types.ClassType))
 
 
 def set_interval(func, sec, guild, client):
@@ -226,13 +220,19 @@ def valid_item(name):
 
 
 def find_create(wallet_id,guild):
-    guild_collection=db[str(guild.id)]
-    wallet=guild_collection.find_one({"id":wallet_id})
-    if wallet is None:
-        res= database.create(guild,f'<@!{wallet_id}>')
-        print(res)
-        return res[2]
-    return wallet
+    print("find_create called with", wallet_id)
+
+    guild_collection =db[str(guild.id)]
+    found_wallet = guild_collection.find_one({"id":wallet_id})
+    if(found_wallet is None):
+        found_wallet = database.create(guild, f'<@{wallet_id}>')[2]
+    return found_wallet
+  #  guild_collection=db[str(guild.id)]
+  #  wallet=guild_collection.find_one({"id":wallet_id})
+  #  if wallet is None:
+  #      database.create(guild,f'<@!{wallet_id}>')
+  #      wallet=guild_collection.find_one({"id":wallet_id})
+  #  return wallet
 
 
 def seconds_to_time(seconds:int):
